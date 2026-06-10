@@ -171,6 +171,11 @@ Input Invoice EMS
 </div>
 
 <div class="form-group">
+<label>Tanggal Invoice</label>
+<input type="date" id="tanggalInvoice">
+</div>
+
+<div class="form-group">
 <label>Jenis Invoice</label>
 <select id="invoiceType">
 
@@ -559,6 +564,9 @@ if(!invoiceType.value){
 
         jabatan:
         jabatan.value,
+		
+	    tanggalInvoice:
+		document.getElementById("tanggalInvoice").value,
 
         jenisInvoice:
         invoiceType.options[
@@ -603,7 +611,6 @@ if(!invoiceType.value){
             SCRIPT_URL,
             {
                 method:"POST",
-				mode:"no-cors",
                 body:JSON.stringify(payload)
             }
         );
