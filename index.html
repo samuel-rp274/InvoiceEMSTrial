@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>EMS Invoice System</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
+
+<style>
+:root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --input:#334155;
+    --primary:#dc2626;
+    --text:#f8fafc;
+    --muted:#94a3b8;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Inter,Arial,sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    padding:30px;
+}
+
+.container{
+    max-width:800px;
+    margin:auto;
+}
+
+.card{
+    background:var(--card);
+    padding:24px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+h1{
+    margin-bottom:5px;
+}
+
+.subtitle{
+    color:var(--muted);
+    margin-bottom:25px;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+input,
+select{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    background:var(--input);
+    color:white;
+    font-size:14px;
+}
+
+input[readonly]{
+    opacity:.8;
+}
+
+.hidden{
+    display:none;
+}
+
+.total{
+    margin-top:20px;
+    padding:15px;
+    background:#111827;
+    border-radius:12px;
+    font-size:22px;
+    font-weight:700;
+}
+
+button{
+    margin-top:20px;
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:var(--primary);
+    color:white;
+    font-weight:700;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+#status{
+    text-align:center;
+    margin-top:15px;
+    font-weight:600;
+}
+
+/* TOM SELECT */
+
+.ts-wrapper.single .ts-control{
+    background: var(--input) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+}
+
+.ts-control input{
+    color: white !important;
+}
+
+.ts-dropdown{
+    background: var(--card) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.ts-dropdown .option{
+    color: white !important;
+}
+
+.ts-dropdown .active{
+    background: var(--primary) !important;
+}
+
+.ts-wrapper.focus .ts-control{
+    box-shadow: 0 0 0 2px rgba(220,38,38,.4) !important;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>EMS Invoice System</h1>
+<div class="subtitle">
+Input Invoice EMS
+</div>
+
+<form id="invoiceForm">
+
+<div class="form-group">
+<label>Nama EMS</label>
+<select id="nama">
+</select>
+</div>
+
+<div class="form-group">
+<label>Jabatan</label>
+<input type="text" id="jabatan" readonly>
+</div>
+
+<div class="form-group">
+<label>Jenis Invoice</label>
+<select id="invoiceType">
+
+<option value="">Pilih Invoice</option>
+
+<option value="10000">
+REVIVE BPJS AREA KOTA - SEKITARNYA
+</option>
+
+<option value="15000">
+REVIVE BPJS PALETO, ROXWOOD, CAYO, LAUT
+</option>
+
+<option value="25000">
+REVIVE BPJS MT. CHILLIAD
+</option>
+
+<option value="20000">
+REVIVE NON BPJS AREA KOTA - SEKITARNYA
+</option>
+
+<option value="30000">
+REVIVE NON BPJS PALETO, ROXWOOD, CAYO, LAUT
+</option>
+
+<option value="50000">
+REVIVE NON BPJS MT. CHILLIAD
+</option>
+
+<option value="10000">KTA</option>
+<option value="50000">BPJS</option>
+<option value="50000">MEDICAL CHECKUP</option>
+
+<option value="operasi">OPERASI</option>
+<option value="surat">SURAT</option>
+<option value="lain">LAIN-LAIN</option>
+
+</select>
+</div>
+
+<!-- NORMAL -->
+
+<div id="normalSection">
+
+<div class="form-group">
+<label>Harga</label>
+<input type="number" id="harga" readonly>
+</div>
+
+<div class="form-group">
+<label>Kuantitas</label>
+<input type="number" id="qty" value="1" min="1">
+</div>
+
+</div>
+
+<!-- OPERASI -->
+
+<div id="operasiSection" class="hidden">
+
+<div class="form-group">
+<label>Jenis Operasi</label>
+<input type="text" id="jenisOperasi">
+</div>
+
+<div class="form-group">
+<label>Rawat Inap</label>
+<select id="rawatInap">
+<option>Reguler</option>
+<option>VIP</option>
+<option>VVIP</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Pembayaran</label>
+<select id="pembayaran">
+<option>BPJS</option>
+<option>Non BPJS</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Harga</label>
+<input type="number" id="hargaOperasi">
+</div>
+
+<div class="form-group">
+<label>Kuantitas</label>
+<input type="number" id="qtyOperasi" value="1">
+</div>
+
+</div>
+
+<!-- SURAT -->
+
+<div id="suratSection" class="hidden">
+
+<div class="form-group">
+<label>Jenis Surat</label>
+<input type="text" id="jenisSurat">
+</div>
+
+<div class="form-group">
+<label>Harga</label>
+<input type="number" id="hargaSurat">
+</div>
+
+<div class="form-group">
+<label>Kuantitas</label>
+<input type="number" id="qtySurat" value="1">
+</div>
+
+</div>
+
+<!-- LAIN -->
+
+<div id="lainSection" class="hidden">
+
+<div class="form-group">
+<label>Deskripsi</label>
+<input type="text" id="deskripsiLain">
+</div>
+
+<div class="form-group">
+<label>Harga</label>
+<input type="number" id="hargaLain">
+</div>
+
+<div class="form-group">
+<label>Kuantitas</label>
+<input type="number" id="qtyLain" value="1">
+</div>
+
+</div>
+
+<div class="form-group">
+<label>Link Bukti Invoice</label>
+<input type="url" id="bukti">
+</div>
+
+<div class="total">
+Total: <span id="total">$KK 0</span>
+</div>
+
+<button type="submit">
+SIMPAN INVOICE
+</button>
+
+<div id="status"></div>
+
+</form>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+<script>
+
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
+
+const emsData = {
+"dr. Erza Everdeen": "CEO - Dokter",
+"dr. Ronald Leonidas": "CEO - Dokter",
+"dr. Wishaka Emran Ambroos, Sp. FM": "DIREKTUR - Spesialis Forensik Medikolegal",
+"dr. Kriv A Ambroos, Sp. FM": "WAKDIR Operasional - Spesialis Forensik Medikolegal",
+"dr. Kai A. Arsen": "WAKDIR Personalia - Dokter",
+"dr. Xazira W Alfonsine": "HRD - Dokter",
+"dr. Candice Lie Rayel": "HRD - Dokter",
+"dr. Darent Orion Monroe": "HRD - Dokter",
+"dr. Anton H. Zevillio, Sp. B": "KOMDIS - Spesialis Bedah",
+"dr. Hanif A Russell": "KOMDIS - Dokter",
+"dr. Arielle W Smoke, Sp. OG": "FINANCE - Spesialis Obstetri dan Ginekologi",
+"dr. Samu El Verlly, Sp. BP": "FINANCE - Spesialis Bedah Plastik",
+"dr. Miky Estrada, Sp. OG": "Dokter Spesialis Obstetri dan Ginekologi",
+"dr. Nko G Zevillio, Sp. Rad": "Dokter Spesialis Radiologi",
+"dr. Yuna Aurellia Wook, Sp. BP": "Dokter Spesialis Bedah Plastik",
+"dr. Xiao Daynarys Tagaryen Demonsta": "Dokter Obgyn",
+"dr. Pinky Arabella De Miles": "Dokter Obgyn",
+"dr. Elara V GodFella": "Dokter Umum",
+"dr. Karina A. De Frizz Demonsta": "Dokter Umum",
+"dr. Jamal S Wardoyok": "Dokter Umum",
+"dr. Rynx Bailey Vanhoven": "Dokter Obgyn",
+"dr. Dmitriy A. Ambroos": "Dokter Umum",
+"dr. Rexa S Harmony": "Dokter Umum",
+"dr. Felix H De Frizz": "Dokter Umum",
+"dr. Micho Richmond Rosevale": "Dokter Umum",
+"dr. Gimboy De Frizz": "Dokter Umum",
+"dr. Benjamin RC Schatz": "Dokter Lab",
+"dr. Katherine Reyna Pearce": "Dokter Umum",
+"dr. Gilbert W Smadyan": "Dokter Umum",
+"dr. Naldi Prayogi Osborne": "Dokter Lab",
+"dr. Epan Aguero": "Dokter Lab",
+"dr. Naura W Alfonsine": "Dokter Oplas",
+"dr. Leo De Wook": "Dokter Oplas",
+"dr. Young Qilqil Rachh": "Dokter Oplas",
+"dr. Bido Saputra": "Dokter Obgyn",
+"dr. Amin Sparepart Bowscale": "Dokter Obgyn",
+"dr. Ilham Julian Monroe": "Dokter Lab",
+"dr. Poya Minchow Carmen": "Dokter Oplas",
+"dr. NinoCoco Russell Zevillio": "Dokter Oplas",
+"dr. Olivia K Emiliano": "Dokter Obgyn",
+"dr. Yui La Spada": "Dokter Oplas",
+"dr. Nata Elvano": "Dokter Oplas",
+"dr. Guan M Russell": "Dokter Lab",
+"dr. Wawa Kim Morello": "Dokter Lab",
+"Rizwan Clover Monroe": "Co. Ass",
+"Morgan Sa Realistis": "Co. Ass",
+"Steven Lee": "Co. Ass",
+"Ganendra A Aguero": "Co. Ass",
+"Kazielia D Monscale": "Ass. Lab",
+"Ruisha Shenatarovsky Wook": "Ass. Lab",
+"Daniela Mangkuraga": "Ass. Oplas",
+"Shaw M Budmian": "Co. Ass",
+"James Marchiano": "Co. Ass",
+"Vay Meccadalmore": "Ass. Obgyn",
+"Rafli Setiawan": "Ass. Oplas",
+"Dinooo Raurus": "Ass. Oplas",
+"Kojima Cendana": "Ass. Lab",
+"Carlo Lie Rayel": "Ass. Oplas",
+"Charlie J Randal": "Ass. Oplas",
+"Felix A. Mexicola": "Co. Ass",
+"Sky B Vallente": "Ass. Oplas",
+"Sura Imu": "Ass. Lab",
+"RayManuelle Ramirez Zevillio": "Ass. Obgyn",
+"Calvin Snoop": "Ass. Lab",
+"Ilham Sentosa": "Trainee",
+"Xyan Anggara Lee": "Trainee",
+"Bryan Petterson": "Trainee",
+"Gavin Ellangga": "Trainee",
+"Geo C Pearson": "Trainee",
+"Kimboy Greyson": "Trainee",
+"Kevin Stars": "Trainee",
+"Maz Gopal": "Trainee",
+"Ary Escobar": "Trainee",
+"Ara Mccall": "Trainee",
+"Jacky Amory": "Trainee",
+"Jhon Marest": "Trainee",
+"Kenzie Ardhan": "Trainee",
+"Shino Luweh": "Trainee",
+"Udin Escobar": "Trainee",
+"Vell Noir": "Trainee"
+};
+
+const nama = document.getElementById("nama");
+
+const jabatan = document.getElementById("jabatan");
+const invoiceType = document.getElementById("invoiceType");
+const status = document.getElementById("status");
+
+const normalSection = document.getElementById("normalSection");
+const operasiSection = document.getElementById("operasiSection");
+const suratSection = document.getElementById("suratSection");
+const lainSection = document.getElementById("lainSection");
+
+nama.innerHTML =
+'<option value="">Cari Nama EMS...</option>';
+
+Object.keys(emsData).forEach(item=>{
+    nama.innerHTML += `<option value="${item}">${item}</option>`;
+});
+
+const tomSelectNama = new TomSelect("#nama");
+
+nama.addEventListener("change",()=>{
+    document.getElementById("jabatan").value =
+    emsData[nama.value] || "";
+});
+
+function formatKK(num){
+    return "$KK " +
+    Number(num).toLocaleString("id-ID");
+}
+
+function updateTotal(){
+
+    let total = 0;
+
+    const type =
+    document.getElementById("invoiceType").value;
+
+    if(type === "operasi"){
+        total =
+        (Number(hargaOperasi.value)||0) *
+        (Number(qtyOperasi.value)||1);
+    }
+
+    else if(type === "surat"){
+        total =
+        (Number(hargaSurat.value)||0) *
+        (Number(qtySurat.value)||1);
+    }
+
+    else if(type === "lain"){
+        total =
+        (Number(hargaLain.value)||0) *
+        (Number(qtyLain.value)||1);
+    }
+
+    else{
+        total =
+        (Number(harga.value)||0) *
+        (Number(qty.value)||1);
+    }
+
+	document.getElementById("total").innerText =
+	formatKK(total);
+
+return total;
+	
+}
+
+document
+.getElementById("invoiceType")
+.addEventListener("change",function(){
+
+    normalSection.classList.add("hidden");
+    operasiSection.classList.add("hidden");
+    suratSection.classList.add("hidden");
+    lainSection.classList.add("hidden");
+
+    if(this.value==="operasi"){
+        operasiSection.classList.remove("hidden");
+    }
+    else if(this.value==="surat"){
+        suratSection.classList.remove("hidden");
+    }
+    else if(this.value==="lain"){
+        lainSection.classList.remove("hidden");
+    }
+    else{
+        normalSection.classList.remove("hidden");
+        harga.value = this.value;
+    }
+
+    updateTotal();
+});
+
+document.addEventListener("input",updateTotal);
+
+document
+.getElementById("invoiceForm")
+.addEventListener("submit", async (e)=>{
+
+    e.preventDefault();
+	
+	if(!nama.value){
+    status.innerHTML = "⚠️ Pilih Nama EMS";
+    return;
+}
+
+if(!invoiceType.value){
+    status.innerHTML = "⚠️ Pilih Jenis Invoice";
+    return;
+}
+
+    const jenis =
+    document.getElementById("invoiceType").value;
+
+    let hargaFinal = 0;
+    let qtyFinal = 1;
+
+    if(jenis === "operasi"){
+        hargaFinal = Number(hargaOperasi.value) || 0;
+        qtyFinal = Number(qtyOperasi.value) || 1;
+    }
+    else if(jenis === "surat"){
+        hargaFinal = Number(hargaSurat.value) || 0;
+        qtyFinal = Number(qtySurat.value) || 1;
+    }
+    else if(jenis === "lain"){
+        hargaFinal = Number(hargaLain.value) || 0;
+        qtyFinal = Number(qtyLain.value) || 1;
+    }
+    else{
+        hargaFinal = Number(harga.value) || 0;
+        qtyFinal = Number(qty.value) || 1;
+    }
+
+    const payload = {
+
+        nama:
+        nama.value,
+
+        jabatan:
+        jabatan.value,
+
+        jenisInvoice:
+        invoiceType.options[
+            invoiceType.selectedIndex
+        ].text,
+        
+		jenisOperasi:
+		document.getElementById("jenisOperasi")?.value || "",
+		
+        rawatInap:
+		document.getElementById("rawatInap")?.value || "",
+		
+		pembayaran:
+		document.getElementById("pembayaran")?.value || "",
+		
+		jenisSurat:
+		document.getElementById("jenisSurat")?.value || "",
+		
+		keterangan:
+		document.getElementById("deskripsiLain")?.value || "",
+		
+        harga:
+        hargaFinal,
+
+        qty:
+        qtyFinal,
+
+        total:
+        hargaFinal * qtyFinal,
+		
+		bukti:
+		document.getElementById("bukti")?.value || ""
+
+    };
+
+    status.innerHTML =
+    "⏳ Mengirim...";
+
+    try{
+
+        await fetch(
+            SCRIPT_URL,
+            {
+                method:"POST",
+				mode:"cors",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(payload)
+            }
+        );
+
+        status.innerHTML =
+        "✅ Invoice berhasil disimpan";
+
+        // RESET FORM
+
+        document
+        .getElementById("invoiceForm")
+        .reset();
+		
+		tomSelectNama.clear();
+
+        jabatan.value = "";
+
+        document.getElementById("total").innerText =
+		"$KK 0";
+		
+        normalSection.classList.remove("hidden");
+
+        operasiSection.classList.add("hidden");
+        suratSection.classList.add("hidden");
+        lainSection.classList.add("hidden");
+
+    }
+    catch(err){
+
+        console.error(err);
+
+        status.innerHTML =
+        "❌ Gagal mengirim invoice";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
