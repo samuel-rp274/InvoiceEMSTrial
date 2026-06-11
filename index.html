@@ -47,9 +47,7 @@ button:hover{opacity:.9;}
 <form id="invoiceForm">
 <div class="form-group">
 <label>Nama EMS</label>
-<select id="nama">
-    <option value=""></option>
-</select>
+<select id="nama"></select>
 </div>
 
 <div class="form-group">
@@ -83,7 +81,7 @@ button:hover{opacity:.9;}
 
 <!-- NORMAL -->
 <div id="normalSection">
-  <div class="form-group"><label>Harga</label><input type="number" id="harga" readonly></div>
+  <div class="form-group"><label>Harga</label><input type="number" id="harga" readonly min="0"></div>
   <div class="form-group"><label>Kuantitas</label><input type="number" id="qty" value="1" min="1"></div>
 </div>
 
@@ -93,7 +91,7 @@ button:hover{opacity:.9;}
   <div class="form-group"><label>Rawat Inap</label><select id="rawatInap"><option>Reguler</option><option>VIP</option><option>VVIP</option></select></div>
   <div class="form-group"><label>Pembayaran</label><select id="pembayaran"><option>BPJS</option><option>Non BPJS</option></select></div>
   <div class="form-group"><label>Harga</label><input type="number" id="hargaOperasi" min="0"></div>
-  <div class="form-group"><label>Kuantitas</label><input type="number" id="qtyOperasi" value="1"min="1"></div>
+  <div class="form-group"><label>Kuantitas</label><input type="number" id="qtyOperasi" value="1" min="1"></div>
 </div>
 
 <!-- SURAT -->
@@ -115,7 +113,6 @@ button:hover{opacity:.9;}
 <button type="submit">SIMPAN INVOICE</button>
 <div id="status"></div>
 </form>
-
 </div>
 </div>
 
@@ -126,73 +123,66 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-D
 const emsData = {};
 const nama = document.getElementById("nama");
 const jabatan = document.getElementById("jabatan");
-
-// Fetch data EMS
-
-fetch(SCRIPT_URL + "?action=getEMS")
-.then(res => res.json())
-.then(data => {
-
-    data.forEach(item => {
-
-        if(item.nama && item.jabatan){
-
-            emsData[item.nama] = item.jabatan;
-
-            const option = document.createElement("option");
-            option.value = item.nama;
-            option.textContent = item.nama;
-
-            nama.appendChild(option);
-        }
-
-    });
-
-    window.tomSelectNama = new TomSelect("#nama", {
-    placeholder: "Cari Nama EMS...",
-    create: false,
-    maxOptions: 500,
-    allowEmptyOption: true,
-    sortField: {
-        field: "text",
-        direction: "asc"
-    }
-});
-// paksa kosong saat pertama load
-	setTimeout(() => {
-    tomSelectNama.clear(true);
-	}, 100);
-	})
-.catch(err => {
-    console.error("Gagal load EMS:", err);
-});
-
-// Update jabatan saat nama dipilih
-nama.addEventListener("change", () => {
-  jabatan.value = emsData[nama.value] || "";
-});
-
-const invoiceType = document.getElementById("invoiceType");
 const harga = document.getElementById("harga");
 
+const invoiceType = document.getElementById("invoiceType");
 const status = document.getElementById("status");
 const normalSection = document.getElementById("normalSection");
 const operasiSection = document.getElementById("operasiSection");
 const suratSection = document.getElementById("suratSection");
 const lainSection = document.getElementById("lainSection");
 
-function formatKK(num){
-    return "$KK " + Number(num).toLocaleString("id-ID");
-}
+// Fetch data EMS
+fetch(SCRIPT_URL + "?action=getEMS")
+.then(res => res.json())
+.then(data => {
+    data.forEach(item => {
+        if(item.nama && item.jabatan){
+            emsData[item.nama] = item.jabatan;
+            const option = document.createElement("option");
+            option.value = item.nama;
+            option.textContent = item.nama;
+            nama.appendChild(option);
+        }
+    });
 
+    window.tomSelectNama = new TomSelect("#nama", {
+        placeholder: "Cari Nama EMS...",
+        create: false,
+        sortField: { field: "text", direction: "asc" }
+    });
+
+    // pastikan input kosong saat load
+    setTimeout(() => {
+        tomSelectNama.clear(true);
+    }, 100);
+})
+.catch(err => console.error("Gagal load EMS:", err));
+
+// Update jabatan saat nama dipilih
+nama.addEventListener("change", () => {
+    jabatan.value = emsData[nama.value] || "";
+});
+
+// Harga dan Kuantitas validasi
+document.addEventListener("input", (e) => {
+    const numIds = ["harga","hargaOperasi","hargaSurat","hargaLain","qty","qtyOperasi","qtySurat","qtyLain"];
+    if(numIds.includes(e.target.id)){
+        const el = e.target;
+        if(el.id.includes("qty") && Number(el.value)<1) el.value=1;
+        if(el.id.includes("harga") && Number(el.value)<0) el.value=0;
+    }
+});
+
+// Update total
 function updateTotal(){
     let total = 0;
     const type = invoiceType.value;
-    if(type === "operasi"){ total = (Number(hargaOperasi.value)||0)*(Number(qtyOperasi.value)||1); }
-    else if(type === "surat"){ total = (Number(hargaSurat.value)||0)*(Number(qtySurat.value)||1); }
-    else if(type === "lain"){ total = (Number(hargaLain.value)||0)*(Number(qtyLain.value)||1); }
-    else { total = (Number(harga.value)||0)*(Number(qty.value)||1); }
-    document.getElementById("total").innerText = formatKK(total);
+    if(type==="operasi") total = (Number(hargaOperasi.value)||0)*(Number(qtyOperasi.value)||1);
+    else if(type==="surat") total = (Number(hargaSurat.value)||0)*(Number(qtySurat.value)||1);
+    else if(type==="lain") total = (Number(hargaLain.value)||0)*(Number(qtyLain.value)||1);
+    else total = (Number(harga.value)||0)*(Number(qty.value)||1);
+    document.getElementById("total").innerText = "$KK "+Number(total).toLocaleString("id-ID");
 }
 
 invoiceType.addEventListener("change", function(){
@@ -201,46 +191,18 @@ invoiceType.addEventListener("change", function(){
     suratSection.classList.add("hidden");
     lainSection.classList.add("hidden");
 
-    if(this.value==="operasi"){ operasiSection.classList.remove("hidden"); }
-    else if(this.value==="surat"){ suratSection.classList.remove("hidden"); }
-    else if(this.value==="lain"){ lainSection.classList.remove("hidden"); }
-	else{
-    normalSection.classList.remove("hidden");
-
-    if (!isNaN(this.value)) {
-        harga.value = this.value;
-    } else {
-        harga.value = "";
+    if(this.value==="operasi") operasiSection.classList.remove("hidden");
+    else if(this.value==="surat") suratSection.classList.remove("hidden");
+    else if(this.value==="lain") lainSection.classList.remove("hidden");
+    else{
+        normalSection.classList.remove("hidden");
+        if(!isNaN(this.value)) harga.value = this.value;
+        else harga.value = "";
     }
-}
     updateTotal();
 });
 
 document.addEventListener("input", updateTotal);
-
-document.addEventListener("input", (e) => {
-
-    if (e.target.type === "number") {
-
-        let value = Number(e.target.value);
-
-        if (e.target.id.includes("qty")) {
-
-            if (value < 1 || isNaN(value)) {
-                e.target.value = 1;
-            }
-
-        } else {
-
-            if (value < 0 || isNaN(value)) {
-                e.target.value = 0;
-            }
-
-        }
-
-    }
-
-});
 
 document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
     e.preventDefault();
@@ -259,7 +221,7 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
     if(jenis==="operasi"){ hargaFinal = Number(hargaOperasi.value)||0; qtyFinal = Number(qtyOperasi.value)||1; }
     else if(jenis==="surat"){ hargaFinal = Number(hargaSurat.value)||0; qtyFinal = Number(qtySurat.value)||1; }
     else if(jenis==="lain"){ hargaFinal = Number(hargaLain.value)||0; qtyFinal = Number(qtyLain.value)||1; }
-    else { hargaFinal = Number(harga.value)||0; qtyFinal = Number(qty.value)||1; }
+    else{ hargaFinal = Number(harga.value)||0; qtyFinal = Number(qty.value)||1; }
 
     const payload = {
         nama: nama.value,
@@ -279,7 +241,7 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
 
     status.innerHTML = "⏳ Mengirim...";
     try{
-        const yakin = confirm(`Nama: ${nama.value}\nInvoice: ${invoiceType.options[invoiceType.selectedIndex].text}\nTotal: ${formatKK(hargaFinal*qtyFinal)}\nLanjut simpan?`);
+        const yakin = confirm(`Nama: ${nama.value}\nInvoice: ${invoiceType.options[invoiceType.selectedIndex].text}\nTotal: $KK ${hargaFinal*qtyFinal}\nLanjut simpan?`);
         if(!yakin) return;
         await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify(payload)});
         status.innerHTML = "✅ Invoice berhasil disimpan";
