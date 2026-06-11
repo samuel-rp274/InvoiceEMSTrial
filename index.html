@@ -164,6 +164,11 @@ nama.addEventListener("change", () => {
     jabatan.value = emsData[nama.value] || "";
 });
 
+// Cegah Enter di link bukti bikin lompat
+document.getElementById("bukti").addEventListener("keydown", function(e){
+    if(e.key === "Enter") e.preventDefault();
+});
+
 // Harga dan Kuantitas validasi
 document.addEventListener("input", (e) => {
     const numIds = ["harga","hargaOperasi","hargaSurat","hargaLain","qty","qtyOperasi","qtySurat","qtyLain"];
@@ -204,6 +209,7 @@ invoiceType.addEventListener("change", function(){
 
 document.addEventListener("input", updateTotal);
 
+// Submit handler
 document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
     e.preventDefault();
     if(!nama.value){ status.innerHTML = "⚠️ Pilih Nama EMS"; return; }
@@ -246,23 +252,36 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
         await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify(payload)});
         status.innerHTML = "✅ Invoice berhasil disimpan";
 
-		// Simpan nilai Nama & Jabatan sebelum reset
-		const namaTerpilih = nama.value;
-		const jabatanTerpilih = jabatan.value;
+        // --- RESET FIELD KECUALI NAMA & JABATAN ---
+        const namaTerpilih = nama.value;
 
-		// Reset form tapi jangan reset Nama & Jabatan
-		document.getElementById("invoiceForm").reset();
+        // Kosongkan field lain
+        document.getElementById("tanggalInvoice").value = "";
+        document.getElementById("invoiceType").value = "";
+        document.getElementById("bukti").value = "";
 
-		// Restore Nama & Jabatan (TomSelect)
-		tomSelectNama.setValue(namaTerpilih, true); // true = silent
-		jabatan.value = jabatanTerpilih;
+        normalSection.classList.remove("hidden");
+        operasiSection.classList.add("hidden");
+        suratSection.classList.add("hidden");
+        lainSection.classList.add("hidden");
 
-		// Reset total dan sections
-		document.getElementById("total").innerText="$KK 0";
-		normalSection.classList.remove("hidden");
-		operasiSection.classList.add("hidden");
-		suratSection.classList.add("hidden");
-		lainSection.classList.add("hidden");        
+        harga.value = "";
+        qty.value = 1;
+        hargaOperasi.value = "";
+        qtyOperasi.value = 1;
+        hargaSurat.value = "";
+        qtySurat.value = 1;
+        hargaLain.value = "";
+        qtyLain.value = 1;
+        jenisOperasi.value = "";
+        jenisSurat.value = "";
+        deskripsiLain.value = "";
+
+        document.getElementById("total").innerText = "$KK 0";
+
+        // Restore Nama & Jabatan
+        tomSelectNama.setValue(namaTerpilih); // trigger change event agar jabatan update
+        jabatan.value = emsData[namaTerpilih] || "";
 
     } catch(err){
         console.error(err);
