@@ -173,6 +173,8 @@ nama.addEventListener("change", () => {
 });
 
 const invoiceType = document.getElementById("invoiceType");
+const harga = document.getElementById("harga");
+
 const status = document.getElementById("status");
 const normalSection = document.getElementById("normalSection");
 const operasiSection = document.getElementById("operasiSection");
@@ -202,8 +204,15 @@ invoiceType.addEventListener("change", function(){
     if(this.value==="operasi"){ operasiSection.classList.remove("hidden"); }
     else if(this.value==="surat"){ suratSection.classList.remove("hidden"); }
     else if(this.value==="lain"){ lainSection.classList.remove("hidden"); }
-    else{ normalSection.classList.remove("hidden"); harga.value = this.value; }
+	else{
+    normalSection.classList.remove("hidden");
 
+    if (!isNaN(this.value)) {
+        harga.value = this.value;
+    } else {
+        harga.value = "";
+    }
+}
     updateTotal();
 });
 
