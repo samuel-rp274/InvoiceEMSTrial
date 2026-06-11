@@ -339,88 +339,15 @@ SIMPAN INVOICE
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 
-const emsData = {
-"dr. Erza Everdeen": "CEO - Dokter",
-"dr. Ronald Leonidas": "CEO - Dokter",
-"dr. Wishaka Emran Ambroos, Sp. FM": "DIREKTUR - Spesialis Forensik Medikolegal",
-"dr. Kriv A Ambroos, Sp. FM": "WAKDIR Operasional - Spesialis Forensik Medikolegal",
-"dr. Kai A. Arsen": "WAKDIR Personalia - Dokter",
-"dr. Xazira W Alfonsine": "HRD - Dokter",
-"dr. Candice Lie Rayel": "HRD - Dokter",
-"dr. Darent Orion Monroe": "HRD - Dokter",
-"dr. Anton H. Zevillio, Sp. B": "KOMDIS - Spesialis Bedah",
-"dr. Hanif A Russell": "KOMDIS - Dokter",
-"dr. Arielle W Smoke, Sp. OG": "FINANCE - Spesialis Obstetri dan Ginekologi",
-"dr. Samu El Verlly, Sp. BP": "FINANCE - Spesialis Bedah Plastik",
-"dr. Miky Estrada, Sp. OG": "Dokter Spesialis Obstetri dan Ginekologi",
-"dr. Nko G Zevillio, Sp. Rad": "Dokter Spesialis Radiologi",
-"dr. Yuna Aurellia Wook, Sp. BP": "Dokter Spesialis Bedah Plastik",
-"dr. Xiao Daynarys Tagaryen Demonsta": "Dokter Obgyn",
-"dr. Pinky Arabella De Miles": "Dokter Obgyn",
-"dr. Elara V GodFella": "Dokter Umum",
-"dr. Karina A. De Frizz Demonsta": "Dokter Umum",
-"dr. Jamal S Wardoyok": "Dokter Umum",
-"dr. Rynx Bailey Vanhoven": "Dokter Obgyn",
-"dr. Dmitriy A. Ambroos": "Dokter Umum",
-"dr. Rexa S Harmony": "Dokter Umum",
-"dr. Felix H De Frizz": "Dokter Umum",
-"dr. Micho Richmond Rosevale": "Dokter Umum",
-"dr. Gimboy De Frizz": "Dokter Umum",
-"dr. Benjamin RC Schatz": "Dokter Lab",
-"dr. Katherine Reyna Pearce": "Dokter Umum",
-"dr. Gilbert W Smadyan": "Dokter Umum",
-"dr. Naldi Prayogi Osborne": "Dokter Lab",
-"dr. Epan Aguero": "Dokter Lab",
-"dr. Naura W Alfonsine": "Dokter Oplas",
-"dr. Leo De Wook": "Dokter Oplas",
-"dr. Young Qilqil Rachh": "Dokter Oplas",
-"dr. Bido Saputra": "Dokter Obgyn",
-"dr. Amin Sparepart Bowscale": "Dokter Obgyn",
-"dr. Ilham Julian Monroe": "Dokter Lab",
-"dr. Poya Minchow Carmen": "Dokter Oplas",
-"dr. NinoCoco Russell Zevillio": "Dokter Oplas",
-"dr. Olivia K Emiliano": "Dokter Obgyn",
-"dr. Yui La Spada": "Dokter Oplas",
-"dr. Nata Elvano": "Dokter Oplas",
-"dr. Guan M Russell": "Dokter Lab",
-"dr. Wawa Kim Morello": "Dokter Lab",
-"Rizwan Clover Monroe": "Co. Ass",
-"Morgan Sa Realistis": "Co. Ass",
-"Steven Lee": "Co. Ass",
-"Ganendra A Aguero": "Co. Ass",
-"Kazielia D Monscale": "Ass. Lab",
-"Ruisha Shenatarovsky Wook": "Ass. Lab",
-"Daniela Mangkuraga": "Ass. Oplas",
-"Shaw M Budmian": "Co. Ass",
-"James Marchiano": "Co. Ass",
-"Vay Meccadalmore": "Ass. Obgyn",
-"Rafli Setiawan": "Ass. Oplas",
-"Dinooo Raurus": "Ass. Oplas",
-"Kojima Cendana": "Ass. Lab",
-"Carlo Lie Rayel": "Ass. Oplas",
-"Charlie J Randal": "Ass. Oplas",
-"Felix A. Mexicola": "Co. Ass",
-"Sky B Vallente": "Ass. Oplas",
-"Sura Imu": "Ass. Lab",
-"RayManuelle Ramirez Zevillio": "Ass. Obgyn",
-"Calvin Snoop": "Ass. Lab",
-"Ilham Sentosa": "Trainee",
-"Xyan Anggara Lee": "Trainee",
-"Bryan Petterson": "Trainee",
-"Gavin Ellangga": "Trainee",
-"Geo C Pearson": "Trainee",
-"Kimboy Greyson": "Trainee",
-"Kevin Stars": "Trainee",
-"Maz Gopal": "Trainee",
-"Ary Escobar": "Trainee",
-"Ara Mccall": "Trainee",
-"Jacky Amory": "Trainee",
-"Jhon Marest": "Trainee",
-"Kenzie Ardhan": "Trainee",
-"Shino Luweh": "Trainee",
-"Udin Escobar": "Trainee",
-"Vell Noir": "Trainee"
-};
+const emsData = {};
+fetch("https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec") //
+  .then(res => res.json())
+  .then(data => {
+    data.forEach(item => {
+      nama.innerHTML += `<option value="${item.nama}">${item.nama}</option>`;
+      emsData[item.nama] = item.jabatan;
+    });
+  });
 
 const nama = document.getElementById("nama");
 
