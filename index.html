@@ -56,6 +56,11 @@ button:hover{opacity:.9;}
 </div>
 
 <div class="form-group">
+<label>Divisi</label>
+<input type="text" id="divisi" readonly>
+</div>
+
+<div class="form-group">
 <label>Tanggal Invoice</label>
 <input type="date" id="tanggalInvoice">
 </div>
@@ -123,6 +128,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-D
 const emsData = {};
 const nama = document.getElementById("nama");
 const jabatan = document.getElementById("jabatan");
+const divisi = document.getElementById("divisi");
 const harga = document.getElementById("harga");
 
 const invoiceType = document.getElementById("invoiceType");
@@ -137,13 +143,16 @@ fetch(SCRIPT_URL + "?action=getEMS")
 .then(res => res.json())
 .then(data => {
     data.forEach(item => {
-        if(item.nama && item.jabatan){
-            emsData[item.nama] = item.jabatan;
-            const option = document.createElement("option");
-            option.value = item.nama;
-            option.textContent = item.nama;
-            nama.appendChild(option);
-        }
+        if(item.nama){
+			emsData[item.nama] = {
+			jabatan: item.jabatan || "",
+			divisi: item.divisi || ""
+		};
+			const option = document.createElement("option");
+			option.value = item.nama;
+			option.textContent = item.nama;
+			nama.appendChild(option);
+		}	
     });
 
     window.tomSelectNama = new TomSelect("#nama", {
@@ -161,7 +170,8 @@ fetch(SCRIPT_URL + "?action=getEMS")
 
 // Update jabatan saat nama dipilih
 nama.addEventListener("change", () => {
-    jabatan.value = emsData[nama.value] || "";
+    jabatan.value = emsData[nama.value]?.jabatan || "";
+    divisi.value = emsData[nama.value]?.divisi || "";
 });
 
 // Cegah Enter di link bukti bikin lompat
@@ -232,6 +242,7 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
     const payload = {
         nama: nama.value,
         jabatan: jabatan.value,
+	    divisi: divisi.value,
         tanggalInvoice: document.getElementById("tanggalInvoice").value,
         jenisInvoice: invoiceType.options[invoiceType.selectedIndex].text,
         jenisOperasi: document.getElementById("jenisOperasi")?.value || "",
@@ -286,8 +297,8 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
 
         // Restore Nama & Jabatan
         tomSelectNama.setValue(namaTerpilih); // trigger change event agar jabatan update
-        jabatan.value = emsData[namaTerpilih] || "";
-
+        jabatan.value = emsData[namaTerpilih]?.jabatan || "";
+		divisi.value = emsData[namaTerpilih]?.divisi || "";
     } catch(err){
         console.error(err);
         status.innerHTML = "❌ Gagal mengirim invoice";
