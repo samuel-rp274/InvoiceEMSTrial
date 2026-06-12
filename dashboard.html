@@ -262,17 +262,14 @@ function renderTable(){
 
     const {start,end}=getWeekRange(new Date());
 	
-	const week = filtered.filter(i=>{
+	const week = filtered.filter(i => {
 
-		const [y,m,d] = i["Tanggal Invoice"]
-			.split("-")
-			.map(Number);
-
-    const t = new Date(y, m-1, d);
+    const t = new Date(i["Tanggal Invoice"]);
 
     return t >= start && t <= end;
-});
 
+});
+	
     document.getElementById("jumlahInvoice").innerText = week.length;
     document.getElementById("totalGaji").innerText =
     "$KK "+week.reduce((a,b)=>a+(Number(b["Total"])||0),0).toLocaleString("id-ID");
@@ -283,12 +280,15 @@ function renderTable(){
 
     // Format Upload Terakhir hanya YYYY-MM-DD
 	document.getElementById("uploadTerakhir").innerText =
-    last ? last["Tanggal Invoice"] + " - " + last["Jenis Invoice"] : "-";
+	last
+	? new Date(last["Tanggal Invoice"]).toLocaleDateString("id-ID")
+	+ " - " + last["Jenis Invoice"]
+	: "-";	
 	
     document.getElementById("tbody").innerHTML = week.map(i=>`
         <tr>
-            <td>${i["Tanggal Invoice"]}</td>
-			<td>${i["Jenis Invoice"]}</td>
+			<td>${new Date(i["Tanggal Invoice"]).toLocaleDateString("id-ID")}</td>
+            <td>${i["Jenis Invoice"]}</td>
             <td>${i["Qty"]}</td>
             <td>$KK ${Number(i["Total"]).toLocaleString("id-ID")}</td>
             <td><a href="${i["Bukti"]}" target="_blank">Lihat</a></td>
