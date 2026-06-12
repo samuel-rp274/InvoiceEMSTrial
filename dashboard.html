@@ -1,9 +1,13 @@
 <script>
-// Fungsi konversi ke WIB (UTC+7), output YYYY-MM-DD
+// Fungsi format tanggal ke WIB tanpa error
 function formatTanggalWIB(dateStr){
+    if(!dateStr) return "";
+    // Jika sudah YYYY-MM-DD
+    if(dateStr.length===10) return dateStr;
+
+    // Jika timestamp UTC
     const d = new Date(dateStr);
-    d.setHours(d.getHours() + 7); // +7 jam ke WIB
-    return d.toISOString().split('T')[0];
+    return d.toLocaleDateString("sv-SE",{timeZone:"Asia/Jakarta"});
 }
 
 function renderTable(){
@@ -38,7 +42,7 @@ function renderTable(){
         new Date(b["Tanggal Invoice"])-new Date(a["Tanggal Invoice"])
     )[0];
 
-    // Upload Terakhir pakai WIB
+    // Upload Terakhir pakai WIB aman
     document.getElementById("uploadTerakhir").innerText =
         last ? formatTanggalWIB(last["Tanggal Invoice"]) + " - " + last["Jenis Invoice"] : "-";
 
