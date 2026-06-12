@@ -283,9 +283,8 @@ function renderTable(){
 
     // Format Upload Terakhir hanya YYYY-MM-DD
 	document.getElementById("uploadTerakhir").innerText =
-    last ? last["Tanggal Invoice"] + " - " + last["Jenis Invoice"]
-      : "-";
-
+    last ? last["Tanggal Invoice"] + " - " + last["Jenis Invoice"] : "-";
+	
     document.getElementById("tbody").innerHTML = week.map(i=>`
         <tr>
             <td>${i["Tanggal Invoice"]}</td>
