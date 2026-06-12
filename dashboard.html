@@ -270,12 +270,14 @@ function renderTable(){
         new Date(b["Tanggal Invoice"])-new Date(a["Tanggal Invoice"])
     )[0];
 
+    // Format Upload Terakhir hanya YYYY-MM-DD
     document.getElementById("uploadTerakhir").innerText =
-    last ? last["Tanggal Invoice"]+" - "+last["Jenis Invoice"] : "-";
+        last ? new Date(last["Tanggal Invoice"]).toISOString().split('T')[0]
+               + " - " + last["Jenis Invoice"] : "-";
 
     document.getElementById("tbody").innerHTML = week.map(i=>`
         <tr>
-            <td>${i["Tanggal Invoice"]}</td>
+            <td>${new Date(i["Tanggal Invoice"]).toISOString().split('T')[0]}</td>
             <td>${i["Jenis Invoice"]}</td>
             <td>${i["Qty"]}</td>
             <td>$KK ${Number(i["Total"]).toLocaleString("id-ID")}</td>
