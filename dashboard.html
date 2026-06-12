@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard EMS</title>
+
+<style>
+
+:root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --input:#334155;
+    --primary:#dc2626;
+    --text:#f8fafc;
+    --muted:#94a3b8;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Inter,Arial,sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    padding:30px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+.card{
+    background:var(--card);
+    border-radius:20px;
+    padding:24px;
+    margin-bottom:20px;
+}
+
+h1{
+    margin-bottom:8px;
+}
+
+.subtitle{
+    color:var(--muted);
+    margin-bottom:20px;
+}
+
+select{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    background:var(--input);
+    color:white;
+    font-size:14px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+    margin-top:20px;
+}
+
+.stat{
+    background:#111827;
+    border-radius:15px;
+    padding:20px;
+}
+
+.stat-title{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.stat-value{
+    font-size:24px;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th{
+    background:#111827;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+tr:hover{
+    background:rgba(255,255,255,.03);
+}
+
+a{
+    color:#60a5fa;
+}
+
+button{
+    background:var(--primary);
+    color:white;
+    border:none;
+    padding:12px 18px;
+    border-radius:12px;
+    cursor:pointer;
+    margin-top:15px;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.empty{
+    text-align:center;
+    color:var(--muted);
+    padding:30px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>Dashboard EMS</h1>
+<div class="subtitle">
+Cek invoice yang sudah diupload
+</div>
+
+<select id="namaEMS">
+<option value="">Pilih EMS...</option>
+</select>
+
+<button onclick="loadData()">
+Refresh Data
+</button>
+
+<div class="stats">
+
+<div class="stat">
+<div class="stat-title">Jumlah Invoice</div>
+<div class="stat-value" id="jumlahInvoice">0</div>
+</div>
+
+<div class="stat">
+<div class="stat-title">Total Gaji</div>
+<div class="stat-value" id="totalGaji">$KK 0</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<table id="invoiceTable">
+
+<thead>
+<tr>
+<th>Tanggal</th>
+<th>Invoice</th>
+<th>Qty</th>
+<th>Total</th>
+<th>Bukti</th>
+</tr>
+</thead>
+
+<tbody id="tbody">
+
+<tr>
+<td colspan="5" class="empty">
+Pilih EMS terlebih dahulu
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
+
+let allInvoices = [];
+
+const namaEMS = document.getElementById("namaEMS");
+
+async function loadEMS(){
+
+    const res = await fetch(
+        SCRIPT_URL + "?action=getEMS"
+    );
+
+    const data = await res.json();
+
+    data.forEach(item=>{
+
+        const option = document.createElement("option");
+
+        option.value = item.nama;
+        option.textContent = item.nama;
+
+        namaEMS.appendChild(option);
+
+    });
+
+}
+
+async function loadData(){
+
+    const res = await fetch(
+        SCRIPT_URL + "?action=getInvoices"
+    );
+
+    allInvoices = await res.json();
+
+    renderTable();
+
+}
+
+function renderTable(){
+
+    const selectedNama = namaEMS.value;
+
+    const tbody = document.getElementById("tbody");
+
+    if(!selectedNama){
+
+        tbody.innerHTML = `
+        <tr>
+        <td colspan="5" class="empty">
+        Pilih EMS terlebih dahulu
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+    const invoices = allInvoices.filter(
+        x => x["Nama"] == selectedNama
+    );
+
+    let total = 0;
+
+    invoices.forEach(i=>{
+        total += Number(i["Total"]) || 0;
+    });
+
+    document.getElementById("jumlahInvoice").innerText =
+        invoices.length;
+
+    document.getElementById("totalGaji").innerText =
+        "$KK " + total.toLocaleString("id-ID");
+
+    if(invoices.length === 0){
+
+        tbody.innerHTML = `
+        <tr>
+        <td colspan="5" class="empty">
+        Belum ada invoice
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+    tbody.innerHTML = invoices.map(i=>`
+
+        <tr>
+
+        <td>${i["Tanggal Invoice"] || "-"}</td>
+
+        <td>${i["Jenis Invoice"] || "-"}</td>
+
+        <td>${i["Qty"] || 0}</td>
+
+        <td>
+        $KK ${(Number(i["Total"]) || 0).toLocaleString("id-ID")}
+        </td>
+
+        <td>
+        <a href="${i["Bukti"]}" target="_blank">
+        Lihat
+        </a>
+        </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+namaEMS.addEventListener(
+    "change",
+    renderTable
+);
+
+loadEMS();
+loadData();
+
+</script>
+
+</body>
+</html>
