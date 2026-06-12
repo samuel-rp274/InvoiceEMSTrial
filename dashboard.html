@@ -216,6 +216,8 @@ async function loadEMS(){
         placeholder:"Cari nama EMS...",
         onChange: renderTable
     });
+    tomSelectInstance.clear(true);
+    tomSelectInstance.setValue('');
 
     loadData();
 }
