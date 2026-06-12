@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard EMS</title>
 
-<!-- TomSelect untuk autocomplete -->
+<!-- TomSelect -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
@@ -35,6 +35,12 @@ td{padding:12px;border-bottom:1px solid rgba(255,255,255,.08);}
 tr:hover{background:rgba(255,255,255,.03);}
 a{color:#60a5fa;}
 .empty{text-align:center;color:var(--muted);padding:30px;}
+
+/* TomSelect styling */
+.ts-control { background: var(--input) !important; color: white !important; border-radius:12px !important; padding:12px !important; }
+.ts-dropdown { background: var(--card) !important; color: white !important; border: none !important; }
+.ts-dropdown .option { color: white !important; }
+.ts-dropdown .active { background: var(--primary) !important; }
 </style>
 </head>
 <body>
@@ -85,17 +91,24 @@ a{color:#60a5fa;}
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec"; // ganti dengan URL Apps Script
 
 let allInvoices = [];
 let filteredInvoices = [];
 
-// Inisialisasi TomSelect
+// Load nama EMS dan inisialisasi TomSelect
 async function loadEMS(){
     const res = await fetch(SCRIPT_URL+"?action=getEMS");
     const data = await res.json();
     const select = document.getElementById("searchEMS");
 
+    // Option kosong default
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "";
+    select.appendChild(defaultOption);
+
+    // Tambah nama EMS
     data.forEach(item=>{
         const option = document.createElement("option");
         option.value = item.nama;
@@ -103,17 +116,17 @@ async function loadEMS(){
         select.appendChild(option);
     });
 
-    // Init TomSelect
+    // Inisialisasi TomSelect
     new TomSelect("#searchEMS",{
         create:false,
         sortField:{field:"text",direction:"asc"},
         placeholder:"Cari nama EMS..."
     });
 
-    // Setelah load nama EMS, load invoice
     loadData();
 }
 
+// Load semua invoice
 async function loadData(){
     try{
         const res = await fetch(SCRIPT_URL+"?action=getInvoices");
@@ -124,6 +137,7 @@ async function loadData(){
     }
 }
 
+// Hitung minggu (Minggu-Sabtu)
 function getWeekRange(date){
     const d = new Date(date);
     const day = d.getDay();
@@ -134,6 +148,7 @@ function getWeekRange(date){
     return {start,end};
 }
 
+// Render tabel dan statistik
 function renderTable(){
     const select = document.getElementById("searchEMS");
     const nameInput = select.value.trim().toLowerCase();
@@ -190,7 +205,6 @@ function renderTable(){
     `).join("");
 }
 
-// Event listener TomSelect
 document.addEventListener("DOMContentLoaded",()=>{ loadEMS(); });
 </script>
 
