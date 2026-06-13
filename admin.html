@@ -71,6 +71,10 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
   <!-- 4 Stat Card -->
   <div class="stats">
     <div class="stat">
+	  <div class="stat-title">⏳ Invoice Pending Minggu Ini</div>
+	  <div class="stat-value" id="pendingInvoice">0</div>
+	</div>
+	<div class="stat">
       <div class="stat-title">📄 Total Invoice Minggu Ini (Valid)</div>
       <div class="stat-value" id="jumlahInvoice">0</div>
     </div>
@@ -194,6 +198,7 @@ function renderTable(){
 
   // Invoice valid
   const validInvoices = weekInvoices.filter(i=>i.Status==="VALID");
+  const pendingInvoices = weekInvoices.filter(i => i.Status === "PENDING");
 
   const payroll={};
   weekInvoices.forEach(i=>{
@@ -213,6 +218,7 @@ function renderTable(){
   const totalBruto = validInvoices.reduce((a,b)=>a+Number(b.Total||0),0);
   const totalGaji = Object.values(payroll).reduce((a,b)=>a+b.gaji,0);
 
+  document.getElementById("pendingInvoice").innerText =  pendingInvoices.length + " Invoice";
   document.getElementById("jumlahInvoice").innerText = totalInvoice + " Invoice";
   document.getElementById("totalInvoiceBruto").innerText = "$KK "+totalBruto.toLocaleString("id-ID");
   document.getElementById("totalGaji").innerText = "$KK "+totalGaji.toLocaleString("id-ID");
