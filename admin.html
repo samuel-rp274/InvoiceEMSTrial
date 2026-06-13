@@ -119,6 +119,7 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 const POTONGAN = { "PETINGGI":0.25,"PENGURUS":0.25,"SPESIALIS":0.3,"UMUM":0.4,"LAB":0.35,"OBGYN":0.35,"OPLAS":0.35 };
+const LOGIN_KEY = "ems_admin_login";  
 let allInvoices=[], weekRanges=[];
 
 // Login Admin
@@ -128,11 +129,17 @@ async function checkLogin(){
   try{
     const res = await fetch(`${SCRIPT_URL}?action=verifyAdmin&password=${encodeURIComponent(pw)}`);
     const data = await res.json();
-    if(data.success){
-      document.getElementById("loginCard").classList.add("hidden");
-      document.getElementById("adminPanel").classList.remove("hidden");
-      loadData();
-    } else {
+	
+	if(data.success){
+		sessionStorage.setItem(LOGIN_KEY, "true");
+
+		document.getElementById("loginCard").classList.add("hidden");
+		document.getElementById("adminPanel").classList.remove("hidden");
+
+		loadData();
+	}
+		
+	else {
       document.getElementById("loginStatus").innerText = "❌ Password salah";
     }
   }catch(e){
@@ -271,6 +278,17 @@ function updateStatus(rowIndex,status){
     .then(res=>res.json())
     .then(data=>{if(data.success) renderTable();});
 }
+
+window.addEventListener("load", () => {
+  const isLoggedIn = sessionStorage.getItem(LOGIN_KEY);
+
+  if(isLoggedIn === "true"){
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
+    loadData();
+  }
+});
+
 </script>
 </body>
 </html>
