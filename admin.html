@@ -249,19 +249,39 @@ function renderTable(){
   // Invoice valid
   const validInvoices = weekInvoices.filter(i=>i.Status==="VALID");
   const pendingInvoices = weekInvoices.filter(i => i.Status === "PENDING");
+  
+  const payroll = {};
+  
+  weekInvoices.forEach(i => {
+   const nama = i["Nama"];
+   const divisi = i["Divisi"];
+   const total = Number(i["Total"] || 0);
 
-  const payroll={};
-  weekInvoices.forEach(i=>{
-    const nama=i["Nama"];
-    const divisi=i["Divisi"];
-    const total=Number(i["Total"]||0);
-    if(!payroll[nama]) payroll[nama]={divisi,total:0,gaji:0,invoices:[]};
-    payroll[nama].invoices.push(i);
-    if(i.Status==="VALID"){
-      payroll[nama].total+=total;
-      payroll[nama].gaji += total*(1-(POTONGAN[divisi]||0));
-    }
-  });
+  // 1. bikin container dulu
+  if (!payroll[nama]) {
+    payroll[nama] = {
+      divisi: divisi,
+      total: 0,
+      gaji: 0,
+      invoices: [],
+      gajiStatus: "UNPAID"
+    };
+  }
+
+  // 2. masukin semua invoice (history)
+  payroll[nama].invoices.push(i);
+
+  // 3. status gaji (PAID selalu menang)
+  if (i.GajiStatus === "PAID") {
+    payroll[nama].gajiStatus = "PAID";
+  }
+
+  // 4. hitung hanya invoice VALID
+  if (i.Status === "VALID") {
+    payroll[nama].total += total;
+    payroll[nama].gaji += total * (1 - (POTONGAN[divisi] || 0));
+  }
+});
 
   // Update 4 card
   const totalInvoice = validInvoices.length;
@@ -293,6 +313,11 @@ function renderTable(){
       <td>${((POTONGAN[v.divisi]||0)*100).toFixed(0)}%</td>
       <td>$KK ${v.gaji.toLocaleString("id-ID")}</td>
       <td><a onclick="toggleDetail(${idx})">Detail</a></td>
+	  <td>
+	   <input type="checkbox"
+	    onchange="updatePaidUser('${n}', this.checked)"
+		${v.gajiStatus === "PAID" ? "checked" : ""}>
+	  </td>
     </tr>
     <tr class="detail-row hidden" id="detail-${idx}">
       <td colspan="7">
@@ -335,6 +360,16 @@ function updateStatus(rowIndex,status){
 	.then(data=>{
       if(data.success){
         loadData(); // data reload dari server
+      }
+    });
+}
+
+function updatePaidUser(nama, status){
+  fetch(`${SCRIPT_URL}?action=updatePaidUser&nama=${encodeURIComponent(nama)}&status=${status ? "PAID" : "UNPAID"}`)
+    .then(res => res.json())
+    .then(data => {
+      if(data.success){
+        loadData();
       }
     });
 }
