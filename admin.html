@@ -276,7 +276,11 @@ function toggleDetail(n){
 function updateStatus(rowIndex,status){
   fetch(`${SCRIPT_URL}?action=updateStatus&rowIndex=${rowIndex}&status=${status}`)
     .then(res=>res.json())
-    .then(data=>{if(data.success) renderTable();});
+	.then(data=>{
+      if(data.success){
+        loadData(); // data reload dari server
+      }
+    });
 }
 
 window.addEventListener("load", () => {
