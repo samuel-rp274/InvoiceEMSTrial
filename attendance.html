@@ -12,20 +12,15 @@
 :root{
   --bg:#0f172a;
   --card:#1e293b;
-  --input:#334155;
-  --text:#f8fafc;
   --muted:#94a3b8;
+  --text:#f8fafc;
+  --blue:#38bdf8;
   --green:#22c55e;
   --red:#ef4444;
-  --blue:#38bdf8;
+  --yellow:#facc15;
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Arial;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 
 body{
   background:var(--bg);
@@ -35,9 +30,7 @@ body{
   padding:30px;
 }
 
-.container{
-  width:420px;
-}
+.container{width:420px}
 
 .card{
   background:linear-gradient(145deg,#1e293b,#0f172a);
@@ -46,117 +39,100 @@ body{
   padding:24px;
 }
 
-h1{
-  text-align:center;
-  margin-bottom:6px;
-}
-
-.subtitle{
-  text-align:center;
-  color:var(--muted);
-  margin-bottom:18px;
-}
+h1{text-align:center;margin-bottom:6px}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:18px}
 
 /* CLOCK */
 .clock-box{
   text-align:center;
-  margin-bottom:18px;
   padding:16px;
   background:#0b1220;
   border-radius:14px;
+  margin-bottom:18px;
   border:1px solid #1f2a44;
 }
 
-.clock-time{
-  font-size:38px;
-  font-weight:800;
-  color:var(--blue);
-}
+.clock-time{font-size:38px;color:var(--blue);font-weight:800}
+.clock-date{font-size:13px;color:var(--muted)}
 
-.clock-date{
-  font-size:13px;
-  color:var(--muted);
-  margin-top:5px;
-}
-
-/* FORM STYLE */
-.form-group{
-  margin-bottom:14px;
-}
-
-label{
-  display:block;
-  margin-bottom:6px;
-  font-size:13px;
-  color:#cbd5e1;
-  font-weight:600;
-}
+/* FORM */
+.form-group{margin-bottom:14px}
+label{font-size:13px;color:#cbd5e1;font-weight:600;display:block;margin-bottom:6px}
 
 select,input{
   width:100%;
   padding:12px;
   border-radius:12px;
   border:none;
-  background:var(--input);
+  background:#334155;
   color:white;
-  outline:none;
 }
 
 /* BUTTON */
 button{
   width:100%;
   padding:12px;
-  margin-top:12px;
+  margin-top:10px;
   border:none;
   border-radius:12px;
   font-weight:700;
   cursor:pointer;
+  transition:0.2s;
 }
 
-.start{ background:var(--green); color:white; }
-.finish{ background:var(--red); color:white; }
+button:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
 
+.start{background:var(--green)}
+.finish{background:var(--red)}
+
+/* STATUS BADGE */
 .status{
   text-align:center;
   margin-top:14px;
-  color:var(--muted);
-  font-weight:600;
+  padding:10px;
+  border-radius:12px;
+  font-weight:700;
+  transition:0.3s;
 }
 
+.badge-off{background:#1e293b;color:var(--muted)}
+.badge-on{background:#064e3b;color:#22c55e}
+.badge-loading{background:#1e293b;color:var(--yellow)}
+/* LOADING */
+.loading{
+  position:relative;
+}
+
+.loading::after{
+  content:"";
+  width:12px;
+  height:12px;
+  border:2px solid #fff;
+  border-top:2px solid transparent;
+  border-radius:50%;
+  display:inline-block;
+  margin-left:8px;
+  animation:spin 0.8s linear infinite;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0)}
+  100%{transform:rotate(360deg)}
+}
+
+/* TOM SELECT */
 .ts-wrapper.single .ts-control{
-  background: #334155 !important;
-  color: #f8fafc !important;
-  border-radius: 12px !important;
-  border: none !important;
-  padding: 12px !important;
+  background:#334155 !important;
+  color:#fff !important;
+  border:none !important;
+  border-radius:12px !important;
 }
-
-.ts-wrapper.single .ts-control input{
-  color: #f8fafc !important;
-}
-
 .ts-dropdown{
-  background: #1e293b !important;
-  border: 1px solid #334155 !important;
-  color: #f8fafc !important;
-}
-
-.ts-dropdown .option{
-  background: transparent !important;
-  color: #f8fafc !important;
-}
-
-.ts-dropdown .option.active{
-  background: #334155 !important;
-  color: #ffffff !important;
-}
-
-.ts-dropdown .option:hover{
-  background: #475569 !important;
-}
-
-.ts-wrapper.focus .ts-control{
-  box-shadow: 0 0 0 2px #38bdf8 !important;
+  background:#1e293b !important;
+  color:#fff !important;
 }
 </style>
 </head>
@@ -185,213 +161,170 @@ button{
 
     <div class="form-group">
       <label>Jabatan</label>
-      <input id="jabatan" type="text" readonly>
+      <input id="jabatan" readonly>
     </div>
 
     <div class="form-group">
       <label>Divisi</label>
-      <input id="divisi" type="text" readonly>
+      <input id="divisi" readonly>
     </div>
 
     <button class="start" onclick="startDuty()">START DUTY</button>
     <button class="finish" onclick="finishDuty()">FINISH DUTY</button>
 
-    <div class="status" id="status">Status: -</div>
+    <div id="status" class="status badge-off">OFF DUTY</div>
 
   </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
+const API="https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 
-let emsData = {};
-let ts;
+let emsData={},ts;
+let currentUser=null;
 
-let currentSession = null;
-let timerInterval = null;
+// CLOCK
+setInterval(()=>{
+  const now=new Date();
+  document.getElementById("clock-time").innerText=
+    now.toLocaleTimeString("id-ID",{hour12:false});
+  document.getElementById("clock-date").innerText=
+    now.toLocaleDateString("id-ID",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+},1000);
 
-// ================= CLOCK =================
-function updateClock(){
-  const now = new Date();
+// STATUS UI
+function setStatus(type,text){
+  const el=document.getElementById("status");
+  el.className="status";
+  el.innerText=text;
 
-  document.getElementById("clock-time").innerText =
-    now.toLocaleTimeString("id-ID", {hour12:false, timeZone:"Asia/Jakarta"});
-
-  document.getElementById("clock-date").innerText =
-    now.toLocaleDateString("id-ID", {
-      weekday:"long",
-      year:"numeric",
-      month:"long",
-      day:"numeric"
-    });
+  if(type==="on") el.classList.add("badge-on");
+  else if(type==="loading") el.classList.add("badge-loading","loading");
+  else el.classList.add("badge-off");
 }
-setInterval(updateClock,1000);
-updateClock();
 
-// ================= LOAD EMS =================
+// LOAD EMS
 async function loadEMS(){
-  const res = await fetch(API + "?action=getEMS");
-  const data = await res.json();
+  const res=await fetch(API+"?action=getEMS");
+  const data=await res.json();
 
   data.forEach(u=>{
-    emsData[u.nama] = {
-      jabatan: u.jabatan,
-      divisi: u.divisi
-    };
-
-    const opt = document.createElement("option");
-    opt.value = u.nama;
-    opt.textContent = u.nama;
+    emsData[u.nama]=u;
+    let opt=document.createElement("option");
+    opt.value=u.nama;
+    opt.textContent=u.nama;
     nama.appendChild(opt);
   });
 
-  // INIT TOMSELECT (WAJIB SETELAH DATA READY)
-  ts = new TomSelect("#nama",{
-    placeholder:"Cari Nama EMS...",
-    create:false,
-    maxOptions:50,
-    highlight:true
-  });
+  ts=new TomSelect("#nama",{create:false,highlight:true});
 
-  // EVENT HARUS DI SINI (ANTI BUG)
-  ts.on("change", function(value){
-  
-  localStorage.setItem("ems_name", value);
+  ts.on("change",(v)=>{
+    currentUser=v;
 
-  if(!value){
-    jabatan.value = "";
-    divisi.value = "";
-    status.innerText = "Status: -";
-
-    document.querySelector(".start").disabled = false;
-    document.querySelector(".finish").disabled = true;
-
-    return;
-  }
-
-  jabatan.value = emsData[value]?.jabatan || "";
-  divisi.value = emsData[value]?.divisi || "";
-
-  checkSession(value);
-});
-}
-
-async function checkSession(nama){
-  const res = await fetch(API + "?action=getActiveSession&nama=" + nama);
-  const data = await res.json();
-
-  if(data.active){
-    currentSession = data.startTime;
-
-    status.innerText = "🟢 ON DUTY ACTIVE";
-
-    document.querySelector(".start").disabled = true;
-    document.querySelector(".finish").disabled = false;
-
-    startLiveTimer(new Date(data.startTime));
-  } else {
-    currentSession = null;
-
-    document.querySelector(".start").disabled = false;
-    document.querySelector(".finish").disabled = true;
-
-    status.innerText = "⚪ OFF DUTY";
-
-    stopLiveTimer();
-  }
-}
-
-async function restoreSession(){
-  const savedName = localStorage.getItem("ems_name");
-
-  if(!savedName) return;
-
-  // set dropdown ke nama terakhir
-  ts.setValue(savedName, true);
-
-  jabatan.value = emsData[savedName]?.jabatan || "";
-  divisi.value = emsData[savedName]?.divisi || "";
-
-  await checkSession(savedName);
-}
-
-function startLiveTimer(startTime){
-  stopLiveTimer();
-
-  timerInterval = setInterval(() => {
-    const now = new Date();
-    const start = new Date(startTime);
-
-    const diff = now - start;
-
-    const minutes = diff / 60000;
-
-    const hours = diff / 3600000;
-
-    let display = "";
-
-    if(hours >= 1){
-      display = `${hours.toFixed(2)} jam`;
-    } else {
-      display = `${minutes.toFixed(1)} menit`;
+    if(!v){
+      jabatan.value="";
+      divisi.value="";
+      setStatus("off","OFF DUTY");
+      return;
     }
 
-    status.innerText = `🟢 ON DUTY | ${display} berjalan`;
-  }, 1000);
+    jabatan.value=emsData[v].jabatan;
+    divisi.value=emsData[v].divisi;
+
+    checkSession(v);
+  });
+
+  restoreSession();
 }
 
-function stopLiveTimer(){
-  if(timerInterval){
-    clearInterval(timerInterval);
-    timerInterval = null;
+// SESSION CHECK
+async function checkSession(nama){
+  const res=await fetch(API+"?action=getActiveSession&nama="+nama);
+  const data=await res.json();
+
+  if(data.active){
+    setStatus("on","ON DUTY ACTIVE");
+    startTimer(data.startTime);
+    document.querySelector(".start").disabled=true;
+    document.querySelector(".finish").disabled=false;
+  }else{
+    setStatus("off","OFF DUTY");
+    document.querySelector(".start").disabled=false;
+    document.querySelector(".finish").disabled=true;
   }
 }
 
-// ================= START =================
+// TIMER
+let timer;
+function startTimer(start){
+  clearInterval(timer);
+
+  timer=setInterval(()=>{
+    const now=new Date();
+    const diff=now-new Date(start);
+
+    const totalSeconds=Math.floor(diff/1000);
+
+    const hours=Math.floor(totalSeconds/3600);
+    const minutes=Math.floor((totalSeconds%3600)/60);
+    const seconds=totalSeconds%60;
+
+    const format =
+      String(hours).padStart(2,"0") + ":" +
+      String(minutes).padStart(2,"0") + ":" +
+      String(seconds).padStart(2,"0");
+
+    setStatus("on",`ON DUTY • ${format}`);
+  },1000);
+}
+
+// START
 async function startDuty(){
-  if(!nama.value){
-    status.innerText = "Pilih nama dulu";
-    return;
-  }
+  if(!currentUser) return;
 
-  const res = await fetch(API + "?action=startDuty&nama=" + nama.value);
-  const data = await res.json();
+  setStatus("loading","STARTING...");
 
-  status.innerText = data.message;
-  
-  document.querySelector(".start").disabled = true;
-  document.querySelector(".finish").disabled = false;
+  await fetch(API+"?action=startDuty&nama="+currentUser);
 
-  checkSession(nama.value);
+  document.querySelector(".start").disabled=true;
+  document.querySelector(".finish").disabled=false;
+
+  checkSession(currentUser);
 }
 
-// ================= FINISH =================
+// FINISH
 async function finishDuty(){
-  if(!nama.value){
-    status.innerText = "Pilih nama dulu";
-    return;
-  }
+  if(!currentUser) return;
 
-  const res = await fetch(API + "?action=finishDuty&nama=" + nama.value);
-  const data = await res.json();
+  setStatus("loading","FINISHING...");
 
-  status.innerText =
-    data.success
-    ? `${data.message} | ${data.duration.toFixed(1)} menit`
-    : data.message;
-	
-  stopLiveTimer();
+  const res=await fetch(API+"?action=finishDuty&nama="+currentUser);
+  const data=await res.json();
 
-  document.querySelector(".start").disabled = false;
-  document.querySelector(".finish").disabled = true;
+  setStatus("off",data.message);
+
+  document.querySelector(".start").disabled=false;
+  document.querySelector(".finish").disabled=true;
 }
 
-// ================= INIT =================
-loadEMS().then(() => {
-  setTimeout(() => {
-    restoreSession();
-  }, 500);
+// RESTORE
+function restoreSession(){
+  const saved=localStorage.getItem("ems_name");
+  if(saved){
+    ts.setValue(saved);
+    currentUser=saved;
+    checkSession(saved);
+  }
+}
+
+// SAVE NAME
+document.addEventListener("change",(e)=>{
+  if(e.target.id==="nama"){
+    localStorage.setItem("ems_name",e.target.value);
+  }
 });
+
+loadEMS();
 </script>
 
 </body>
