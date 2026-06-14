@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EMS Attendance</title>
 
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
-
 <style>
 :root{
   --bg:#0f172a;
@@ -43,6 +41,7 @@ body{
   border:1px solid #1f2a44;
   border-radius:18px;
   padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
 }
 
 h1{
@@ -56,7 +55,7 @@ h1{
   margin-bottom:18px;
 }
 
-/* CLOCK */
+/* CLOCK UPGRADE */
 .clock-box{
   text-align:center;
   margin-bottom:18px;
@@ -70,6 +69,7 @@ h1{
   font-size:40px;
   font-weight:800;
   color:var(--blue);
+  letter-spacing:2px;
 }
 
 .clock-date{
@@ -78,7 +78,7 @@ h1{
   color:var(--muted);
 }
 
-input, select{
+select,input{
   width:100%;
   padding:12px;
   margin-top:10px;
@@ -99,17 +99,22 @@ button{
   transition:.2s;
 }
 
-button:disabled{
-  opacity:0.4;
-  cursor:not-allowed;
+button:hover{
+  opacity:.85;
 }
 
-.start{ background:var(--green); }
-.finish{ background:var(--red); }
+.start{
+  background:var(--green);
+}
+
+.finish{
+  background:var(--red);
+}
 
 .status{
   text-align:center;
   margin-top:14px;
+  font-weight:600;
   color:var(--muted);
 }
 </style>
@@ -118,68 +123,70 @@ button:disabled{
 <body>
 
 <div class="container">
-<div class="card">
+  <div class="card">
 
-<h1>EMS ABSENSI</h1>
-<div class="subtitle">On Duty Tracking System</div>
+    <h1>EMS ABSENSI</h1>
+    <div class="subtitle">On Duty Tracking System</div>
 
-<!-- CLOCK -->
-<div class="clock-box">
-  <div class="clock-time" id="clock-time">00:00:00</div>
-  <div class="clock-date" id="clock-date">loading...</div>
+    <!-- CLOCK -->
+    <div class="clock-box">
+      <div class="clock-time" id="clock-time">00:00:00</div>
+      <div class="clock-date" id="clock-date">loading...</div>
+    </div>
+
+    <select id="nama">
+      <option value="">Pilih Nama EMS</option>
+    </select>
+
+    <input id="jabatan" placeholder="Jabatan" readonly>
+    <input id="divisi" placeholder="Divisi" readonly>
+
+    <button class="start" onclick="startDuty()">START DUTY</button>
+    <button class="finish" onclick="finishDuty()">FINISH DUTY</button>
+
+    <div class="status" id="status">Status: -</div>
+
+  </div>
 </div>
-
-<!-- EMS -->
-<select id="nama" placeholder="Cari Nama EMS..."></select>
-
-<input id="jabatan" placeholder="Jabatan" readonly>
-<input id="divisi" placeholder="Divisi" readonly>
-
-<button class="start" id="btnStart" onclick="startDuty()">START DUTY</button>
-<button class="finish" id="btnFinish" onclick="finishDuty()">FINISH DUTY</button>
-
-<div class="status" id="status">Status: -</div>
-
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
 <script>
-
 const API = "https://script.google.com/macros/s/YOUR_SCRIPT/exec";
 
 let emsData = {};
-let currentStatus = "OFF";
-let tomSelect;
-
 const nama = document.getElementById("nama");
 const jabatan = document.getElementById("jabatan");
 const divisi = document.getElementById("divisi");
 const status = document.getElementById("status");
 
-// ================= CLOCK FIX =================
+
+// ================= CLOCK =================
 function updateClock(){
   const now = new Date();
 
-  document.getElementById("clock-time").textContent =
-    now.toLocaleTimeString("id-ID",{timeZone:"Asia/Jakarta",hour12:false});
+  const time = now.toLocaleTimeString("id-ID", {
+    timeZone:"Asia/Jakarta",
+    hour12:false
+  });
 
-  document.getElementById("clock-date").textContent =
-    now.toLocaleDateString("id-ID",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const date = now.toLocaleDateString("id-ID", {
+    weekday:"long",
+    year:"numeric",
+    month:"long",
+    day:"numeric"
+  });
+
+  document.getElementById("clock-time").innerText = time;
+  document.getElementById("clock-date").innerText = date;
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
-  updateClock();
-  setInterval(updateClock,1000);
-});
+setInterval(updateClock,1000);
+updateClock();
+
 
 // ================= LOAD EMS =================
 async function loadEMS(){
   const res = await fetch(API + "?action=getEMS");
   const data = await res.json();
-
-  const select = document.getElementById("nama");
 
   data.forEach(item=>{
     emsData[item.nama] = {
@@ -190,99 +197,50 @@ async function loadEMS(){
     const opt = document.createElement("option");
     opt.value = item.nama;
     opt.textContent = item.nama;
-    select.appendChild(opt);
-  });
-
-  tomSelect = new TomSelect("#nama",{
-    placeholder:"Cari Nama EMS...",
-    create:false,
-    sortField:{field:"text",direction:"asc"}
+    nama.appendChild(opt);
   });
 }
 
-// ================= CHECK STATUS =================
-async function checkStatus(nama){
-  const res = await fetch(API + "?action=checkDutyStatus&nama=" + encodeURIComponent(nama));
-  const data = await res.json();
-
-  currentStatus = data.status;
-
-  updateButtons();
-}
-
-// ================= BUTTON CONTROL =================
-function updateButtons(){
-  const startBtn = document.getElementById("btnStart");
-  const finishBtn = document.getElementById("btnFinish");
-
-  if(currentStatus === "ON"){
-    startBtn.disabled = true;
-    finishBtn.disabled = false;
-  }else{
-    startBtn.disabled = false;
-    finishBtn.disabled = true;
-  }
-}
-
-// ================= ON CHANGE EMS =================
-document.getElementById("nama").addEventListener("change",(e)=>{
-  const val = e.target.value;
-
-  jabatan.value = emsData[val]?.jabatan || "";
-  divisi.value = emsData[val]?.divisi || "";
-
-  if(val){
-    checkStatus(val);
-  }
+nama.addEventListener("change",()=>{
+  jabatan.value = emsData[nama.value]?.jabatan || "";
+  divisi.value = emsData[nama.value]?.divisi || "";
 });
 
-// ================= START DUTY =================
+
+// ================= START =================
 async function startDuty(){
-
-  const val = document.getElementById("nama").value;
-  if(!val) return;
-
-  if(currentStatus === "ON"){
-    status.textContent = "Sudah ON DUTY";
+  if(!nama.value){
+    status.innerText = "Pilih nama dulu";
     return;
   }
 
-  const res = await fetch(API + "?action=startDuty&nama=" + encodeURIComponent(val));
+  const res = await fetch(API + "?action=startDuty&nama=" + nama.value);
   const data = await res.json();
 
-  if(data.success){
-    currentStatus = "ON";
-    updateButtons();
-  }
-
-  status.textContent = data.message;
+  status.innerText = data.message;
 }
 
-// ================= FINISH DUTY =================
+
+// ================= FINISH =================
 async function finishDuty(){
-
-  const val = document.getElementById("nama").value;
-  if(!val) return;
-
-  if(currentStatus === "OFF"){
-    status.textContent = "Belum START DUTY";
+  if(!nama.value){
+    status.innerText = "Pilih nama dulu";
     return;
   }
 
-  const res = await fetch(API + "?action=finishDuty&nama=" + encodeURIComponent(val));
+  const res = await fetch(API + "?action=finishDuty&nama=" + nama.value);
   const data = await res.json();
 
   if(data.success){
-    currentStatus = "OFF";
-    updateButtons();
+    status.innerText = `${data.message} | Durasi: ${data.duration.toFixed(1)} menit`;
+  }else{
+    status.innerText = data.message;
   }
-
-  status.textContent = data.message;
 }
 
-// INIT
-loadEMS();
 
+// ================= INIT =================
+loadEMS();
 </script>
 
 </body>
