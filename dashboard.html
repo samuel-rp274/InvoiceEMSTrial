@@ -269,8 +269,9 @@ function renderTable(){
         return;
     }
 	
-	const {start,end}=getWeekRange(new Date());
-
+	const today = new Date();
+	const { start, end } = getWeekRange(today);
+	
 // Invoice minggu aktif
 const weekInvoices = filtered.filter(i => {
 
