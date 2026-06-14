@@ -301,7 +301,7 @@ document.getElementById("totalGaji").innerText =
 	? last["Tanggal Invoice"] + " - " + last["Jenis Invoice"]
 	: "-";
 	
-	document.getElementById("tbody").innerHTML = filtered.map(i=>`
+	document.getElementById("tbody").innerHTML = weekInvoices.map(i=>`
         <tr>
 			<td>${safeDate(i["Tanggal Invoice"]).toLocaleDateString("id-ID")}</td>
 			<td>${i["Jenis Invoice"]}</td>
