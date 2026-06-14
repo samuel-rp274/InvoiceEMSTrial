@@ -25,10 +25,10 @@ body{
 
   display:flex;
   justify-content:center;
-  align-items:flex-start;
+  align-items:center;
 
   min-height:100vh;
-  padding-top:70px;
+  padding-top:0;
 
   overflow-x:hidden;
 }
@@ -71,10 +71,6 @@ body{
   width:100%;
   max-width:800px;
   margin:0 auto;
-}
-
-.container{
-  margin-top:60px;
 }
 
 /* GLASS CARD (MATCH INDEX) */
@@ -242,6 +238,19 @@ button:hover{
   color:#94a3b8;
   letter-spacing:1px;
 }
+
+@media (max-width:768px){
+  body{
+    align-items:center;
+    padding:20px;
+  }
+
+  .container{
+    margin:0;
+    width:100%;
+  }
+}
+
 </style>
 </head>
 
