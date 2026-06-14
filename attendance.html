@@ -260,8 +260,10 @@ function startTimer(start){
   clearInterval(timer);
 
   timer=setInterval(()=>{
-    const now=new Date();
-    const diff=now-new Date(start);
+    const now = new Date(
+	 new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+	);
+	const diff=now-new Date(start);
 
     const totalSeconds=Math.floor(diff/1000);
 
