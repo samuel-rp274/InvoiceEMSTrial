@@ -219,10 +219,19 @@ async function loadData(){
 function parseDuration(str){
     if(!str) return 0;
 
-    const m = String(str).match(/(\d+)\s*h\s*(\d+)\s*m\s*(\d+)\s*s/);
-    if(!m) return 0;
+    str = String(str).toLowerCase();
 
-    return (+m[1]*3600) + (+m[2]*60) + (+m[3]);
+    let h = 0, m = 0, s = 0;
+
+    const hMatch = str.match(/(\d+)\s*h/);
+    const mMatch = str.match(/(\d+)\s*m/);
+    const sMatch = str.match(/(\d+)\s*s/);
+
+    if(hMatch) h = parseInt(hMatch[1]);
+    if(mMatch) m = parseInt(mMatch[1]);
+    if(sMatch) s = parseInt(sMatch[1]);
+
+    return (h * 3600) + (m * 60) + s;
 }
 
 function safeDate(v){
@@ -292,7 +301,8 @@ function render(selectedName){
         total += parseDuration(i["Durasi"]);
     });
 
-    document.getElementById("weekHours").innerText = total + "h";
+    document.getElementById("weekHours").innerText =
+	Math.floor(total / 3600) + "h";
 	
 	const now = new Date();
 	const month = filtered.filter(i=>{
@@ -306,7 +316,8 @@ function render(selectedName){
 		monthTotal += parseDuration(i["Durasi"]);
 	});
 
-	document.getElementById("monthHours").innerText = monthTotal + "h";
+	document.getElementById("monthHours").innerText =
+	Math.floor(monthTotal / 3600) + "h";
 	
 	const top = week.length
 		? [...week].sort((a,b)=>
