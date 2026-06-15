@@ -120,12 +120,43 @@ td{
 .topnav a{
   color:#cbd5e1;
   text-decoration:none;
+  font-size:13px;
+  font-weight:600;
+}
+
+.topnav a:hover{
+  color:#38bdf8;
 }
 
 .topnav .title{
   font-size:13px;
   font-weight:700;
   color:#94a3b8;
+  letter-spacing:1px;
+}
+
+.blob{
+    position:fixed;
+    width:420px;
+    height:420px;
+    border-radius:50%;
+    filter: blur(90px);
+    opacity:0.35;
+    z-index:0;
+    animation: float 10s ease-in-out infinite;
+}
+
+.blob.one{
+    background:#38bdf8;
+    top:-120px;
+    left:-120px;
+}
+
+.blob.two{
+    background:#22c55e;
+    bottom:-140px;
+    right:-140px;
+    animation-delay:2s;
 }
 
 .ts-wrapper {
@@ -176,10 +207,12 @@ td{
 </head>
 
 <body>
+<div class="blob one"></div>
+<div class="blob two"></div>
 
 <div class="topnav">
   <a href="index.html">← Home</a>
-  <div class="title">DUTY LOG SYSTEM</div>
+  <div class="title">EMSKK SYSTEM</div>
 </div>
 
 <div class="container">
@@ -187,7 +220,7 @@ td{
 <!-- HEADER -->
 <div class="card">
 <h1>EMSKK DUTY DASHBOARD</h1>
-<div class="subtitle">Working hours analytics</div>
+<div class="subtitle">Weekly working hours & attendance log</div>
 
 <div class="search-wrap">
     <select id="searchEMS"></select>
