@@ -10,7 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-/* ===== COPY STYLE DARI INVOICE ===== */
 :root{
     --bg:#0f172a;
     --card:#1e293b;
@@ -202,10 +201,13 @@ async function loadEMS(){
     });
 
     ts = new TomSelect("#searchEMS",{
-        onChange:render
+        create: false,
+		onChange: function(value){
+			render(value);
+		}
     });
-
-    loadData();
+	
+	loadData();
 }
 
 async function loadData(){
@@ -232,12 +234,20 @@ function getWeekRange(){
     return {start,end};
 }
 
-function render(){
+function render(selectedName){
 
-    const name = (ts?.getValue() || "").toLowerCase().trim();
-
-    if(!name) return;
-
+	console.log("SELECTED:", ts.getValue());
+	console.log("ALL DATA:", allData);
+	console.log("SELECTED EMS:", selectedName);
+	
+	const name = (selectedName ?? "").toString().trim();
+	
+    if(!name){
+    document.getElementById("tbody").innerHTML =
+    `<tr><td colspan="4" class="empty">Pilih EMS terlebih dahulu</td></tr>`;
+    return;
+	}
+	
     const filtered = allData.filter(i =>
         (i["Nama"]||"").toLowerCase().trim() === name
     );
@@ -268,7 +278,10 @@ function render(){
     `).join("");
 }
 
-document.addEventListener("DOMContentLoaded",loadEMS);
+document.addEventListener("DOMContentLoaded", async ()=>{
+    await loadEMS();
+    await loadData();
+});
 </script>
 
 </body>
