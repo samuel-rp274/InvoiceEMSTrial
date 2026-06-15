@@ -193,20 +193,30 @@ async function loadEMS(){
 
     const select = document.getElementById("searchEMS");
 
-    data.forEach(d=>{
-        let opt = document.createElement("option");
-        opt.value = d.nama;
-        opt.textContent = d.nama;
+    data
+	 .filter(d => d.nama && d.nama.trim().toUpperCase() !== "NAMA")
+	 .sort((a,b)=>a.nama.localeCompare(b.nama))
+	 .forEach(d=>{
+	
+        let clean = d.nama.trim();
+
+		let opt = document.createElement("option");
+		opt.value = clean;
+		opt.textContent = clean;
+		
         select.appendChild(opt);
     });
 
     ts = new TomSelect("#searchEMS",{
-        create: false,
+		create: false,
+		items: [],
+		sortField: [{ field: "text", direction: "asc" }],
+		placeholder: "Cari nama EMS...",
 		onChange: function(value){
 			render(value);
 		}
-    });
-	
+	});
+		
 	loadData();
 }
 
