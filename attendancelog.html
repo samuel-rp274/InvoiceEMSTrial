@@ -152,7 +152,7 @@ td{
 </div>
 
 <div class="stat">
-<div class="stat-title">Top Duty Minggu Ini</div>
+<div class="stat-title">Waktu On Duty Terakhir</div>
 <div class="stat-value" id="topDuty">-</div>
 </div>
 </div>
@@ -333,15 +333,19 @@ function render(selectedName){
 	document.getElementById("monthHours").innerText =
 	`${mHours}h ${mMinutes}m`;
 	
-	const top = week.length
-		? [...week].sort((a,b)=>
-			parseDuration(b["Durasi"]) - parseDuration(a["Durasi"])
-		  )[0]
-		: null;
-		
+	const lastDuty = filtered.length
+		? [...filtered]
+			.filter(i => i["Finish"]) // pastikan sudah selesai duty
+			.sort((a,b)=>
+				safeDate(b["Finish"]) - safeDate(a["Finish"])
+        )[0]
+    : null;
+	
 	document.getElementById("topDuty").innerText =
-	top ? top.Nama : "-"
-
+	lastDuty && lastDuty["Finish"]
+		? lastDuty["Finish"].replace("T", " ")
+		: "-";
+	
     // table
     document.getElementById("tbody").innerHTML =
 	week.length ? week.map(i=>`	
