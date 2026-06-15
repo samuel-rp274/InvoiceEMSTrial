@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EMSKK Duty Dashboard</title>
+<title>EMSKK Attendance Overview</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
@@ -219,8 +219,8 @@ td{
 
 <!-- HEADER -->
 <div class="card">
-<h1>EMSKK DUTY DASHBOARD</h1>
-<div class="subtitle">Weekly working hours & attendance log</div>
+<h1>EMSKK ATTENDANCE OVERVIEW</h1>
+<div class="subtitle">Weekly working hours & duty summary</div>
 
 <div class="search-wrap">
     <select id="searchEMS"></select>
@@ -318,7 +318,6 @@ function parseDuration(str){
 
     str = String(str).trim().toLowerCase();
 
-    // FORMAT HH:MM:SS
     if(str.includes(":")){
         const p = str.split(":");
         if(p.length === 3){
@@ -342,10 +341,8 @@ function parseDuration(str){
 function safeDate(v){
     if(!v) return new Date(0);
 
-    // kalau sudah Date object
     if(v instanceof Date) return v;
 
-    // kalau string datetime dari GAS
     return new Date(v);
 }
 
@@ -400,7 +397,6 @@ function render(selectedName){
         return t>=start && t<=end;
     });
 
-    // total week hours
     let total = 0;
     week.forEach(i=>{
         total += parseDuration(i["Durasi"]);
@@ -432,7 +428,7 @@ function render(selectedName){
 	
 	const lastDuty = filtered.length
 		? [...filtered]
-			.filter(i => i["Finish"]) // pastikan sudah selesai duty
+			.filter(i => i["Finish"])
 			.sort((a,b)=>
 				safeDate(b["Finish"]) - safeDate(a["Finish"])
         )[0]
@@ -443,7 +439,6 @@ function render(selectedName){
 		? lastDuty["Finish"].replace("T", " ")
 		: "-";
 	
-    // table
     document.getElementById("tbody").innerHTML =
 	week.length ? week.map(i=>`	
 	    <tr>
