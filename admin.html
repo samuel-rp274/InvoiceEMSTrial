@@ -403,17 +403,6 @@ function renderPayroll(pay){
   `).join("");
 }
 
-function updateLocal(row, val){
-
-  const idx = attendanceData.findIndex(d => d.RowIndex === row);
-
-  if(idx !== -1){
-    attendanceData[idx].Status = val;
-  }
-
-  renderAttendance();
-}
-
 // ================= ACTIONS
 function updateLocal(row, val){
 
@@ -462,6 +451,13 @@ async function saveEdit(){
   document.getElementById("modal").style.display = "none";
 
   renderAttendance(); // 🔥 NO LOAD()
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("startEdit").value = "";
+  document.getElementById("finishEdit").value = "";
+  editRow = null;
 }
 
 document.getElementById("weekFilter").addEventListener("change", renderAttendance);
