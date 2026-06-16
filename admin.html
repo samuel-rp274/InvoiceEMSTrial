@@ -146,6 +146,7 @@ button{
   <div class="tab active" onclick="showTab('att')">Attendance</div>
   <div class="tab" onclick="showTab('inv')">Invoice</div>
   <div class="tab" onclick="showTab('pay')">Payroll</div>
+  <div class="tab" onclick="showTab('rank')">Ranking</div>
 </div>
 
 <!-- ATTENDANCE -->
@@ -190,6 +191,29 @@ button{
 </div>
 </div>
 
+<!-- RANKING -->
+<div id="rankTab" style="display:none;">
+<table>
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Nama</th>
+  <th>Total Jam VALID</th>
+</tr>
+</thead>
+
+<tbody id="rankBody"></tbody>
+</table>
+
+<!-- FILTER RANKING -->
+<div style="margin-top:10px">
+  <select id="rankMode">
+    <option value="week">Weekly</option>
+    <option value="month">Monthly</option>
+  </select>
+</div>
+
+
 <!-- MODAL -->
 <div class="modal" id="modal">
   <h3>Edit Attendance</h3>
@@ -211,6 +235,7 @@ function showTab(t){
   document.getElementById("attTab").style.display=t==="att"?"block":"none";
   document.getElementById("invTab").style.display=t==="inv"?"block":"none";
   document.getElementById("payTab").style.display=t==="pay"?"block":"none";
+  document.getElementById("rankTab").style.display=t==="rank"?"block":"none";
 }
 
 // ================= WEEK AUTO (FIX AMAN)
@@ -295,6 +320,51 @@ function parseDurasi(str){
   const s = (str.match(/(\d+)\s*s/)||[0,0])[1];
 
   return (+h) + (+m/60) + (+s/3600);
+}
+
+function calculateRanking(mode){
+
+  const map = {};
+
+  attendanceData.forEach(d => {
+
+    if(d.Status !== "VALID") return;
+
+    const date = new Date(d.Start);
+
+    let match = false;
+
+    if(mode === "week"){
+      const weekStart = new Date(document.getElementById("weekFilter").value);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate()+6);
+
+      match = date >= weekStart && date <= weekEnd;
+    }
+
+    if(mode === "month"){
+      const m = new Date();
+      match =
+        date.getMonth() === m.getMonth() &&
+        date.getFullYear() === m.getFullYear();
+    }
+
+    if(!match) return;
+
+    const dur = parseDurasi(d.Durasi || "0h 0m 0s");
+
+    if(!map[d.Nama]) map[d.Nama] = 0;
+
+    map[d.Nama] += dur;
+  });
+
+  return Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .map((x,i)=>({
+      rank:i+1,
+      nama:x[0],
+      jam:x[1]
+    }));
 }
 
 function groupAttendance(data){
@@ -403,6 +473,22 @@ function renderPayroll(pay){
   `).join("");
 }
 
+function renderRanking(){
+
+  const mode = document.getElementById("rankMode").value;
+
+  const data = calculateRanking(mode);
+
+  document.getElementById("rankBody").innerHTML =
+  data.map(r=>`
+    <tr>
+      <td>${r.rank}</td>
+      <td>${r.nama}</td>
+      <td>${formatHM(r.jam)}</td>
+    </tr>
+  `).join("");
+}
+
 // ================= ACTIONS
 function updateLocal(row, val){
 
@@ -462,7 +548,7 @@ function closeModal(){
 
 document.getElementById("weekFilter").addEventListener("change", renderAttendance);
 document.getElementById("statusFilter").addEventListener("change", renderAttendance);
-
+document.getElementById("rankMode").addEventListener("change", renderRanking);
 // ================= INIT
 loadWeeks();
 load();
