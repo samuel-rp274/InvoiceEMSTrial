@@ -376,9 +376,11 @@ function toggleDetail(idx){
 function updateStatus(rowIndex,status){
   fetch(`${SCRIPT_URL}?action=updateStatus&rowIndex=${rowIndex}&status=${status}`)
     .then(res=>res.json())
-	.then(data=>{
+    .then(async data=>{
       if(data.success){
-        document.getElementById("weekSelect").dispatchEvent(new Event("change"));
+        // 🔥 HAPUS CACHE BIAR DATA BARU KELOAD
+        invoiceCache = null;
+        await loadData(); // reload full data tapi sudah lebih cepat karena potongan cache aman
       }
     });
 }
