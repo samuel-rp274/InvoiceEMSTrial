@@ -7,6 +7,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <style>
+#navbar{
+  display: none;
+}
+
 :root{
   --bg:#0f172a; --card:#1e293b; --input:#334155; --primary:#dc2626;
   --text:#f8fafc; --muted:#94a3b8;
@@ -47,11 +51,11 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
 <div class="container">
 
 <!-- Navbar -->
-<div style="display:flex;justify-content:center;margin-bottom:20px;">
+<div id="navbar" style="display:flex;justify-content:center;margin-bottom:20px; display:none;">
   <div style="display:flex;gap:6px;background:#1e293b;padding:6px 12px;border-radius:12px;">
-    <a href="index.html" style="padding:8px 14px;color:white;background:#334155;border-radius:12px;text-decoration:none;">Input</a>
-    <a href="dashboard.html" style="padding:8px 14px;color:white;background:#334155;border-radius:12px;text-decoration:none;">Dashboard</a>
-    <a href="admin.html" style="padding:8px 14px;color:#0f172a;background:#f8fafc;border-radius:12px;text-decoration:none;">Admin</a>
+    <a href="totaladmin.html" style="padding:8px 14px;color:white;background:#334155;border-radius:12px;text-decoration:none;">Total Salary</a>
+    <a href="dashboard.html" style="padding:8px 14px;color:white;background:#334155;border-radius:12px;text-decoration:none;">Attendance Data</a>
+    <a href="invoiceadmin.html" style="padding:8px 14px;color:#0f172a;background:#f8fafc;border-radius:12px;text-decoration:none;">Invoice Data</a>
   </div>
 </div>
 
@@ -66,7 +70,7 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
 
 <!-- Admin Panel -->
 <div class="card hidden" id="adminPanel">
-  <h1>Admin Dashboard EMS</h1>
+  <h1>Invoice Dashboard EMSKK</h1>
 
 <div class="stats">
   <!-- Card 1: Pending + Valid -->
@@ -166,6 +170,7 @@ async function checkLogin(){
 
 		document.getElementById("loginCard").classList.add("hidden");
 		document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("navbar").style.display = "flex";
 
 		loadData();
 	}
