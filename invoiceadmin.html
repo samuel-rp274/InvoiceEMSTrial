@@ -307,8 +307,8 @@ async function renderTable(){
   if (i.Status === "VALID") {
     payroll[nama].total += total;
 
-    const potongan = (potonganCache[(divisi || "").trim().toUpperCase()] ?? 0);
-    payroll[nama].gaji += total * (1 - potongan);
+    // 🔥 ambil langsung dari SHEET (FIXED SOURCE)
+    payroll[nama].gaji += Number(i.GajiBersih || 0);
   }
 }
 
