@@ -30,10 +30,11 @@ body{background:var(--bg);color:var(--text);padding:30px;}
   border-radius:18px;
   padding:24px;
   width:100%;
+  position:relative;
+  z-index:2;
 }
 
-position:relative;
-z-index:2;}
+
 h1{margin-bottom:5px;}
 .subtitle{color:var(--muted);margin-bottom:25px;}
 .form-group{margin-bottom:18px;}
@@ -155,18 +156,6 @@ button:hover{opacity:.9;}
 <label>Jenis Invoice</label>
 <select id="invoiceType">
   <option value="">Pilih Invoice</option>
-  <option value="10000">REVIVE BPJS AREA KOTA - SEKITARNYA</option>
-  <option value="15000">REVIVE BPJS PALETO, ROXWOOD, CAYO, LAUT</option>
-  <option value="25000">REVIVE BPJS MT. CHILLIAD</option>
-  <option value="20000">REVIVE NON BPJS AREA KOTA - SEKITARNYA</option>
-  <option value="30000">REVIVE NON BPJS PALETO, ROXWOOD, CAYO, LAUT</option>
-  <option value="50000">REVIVE NON BPJS MT. CHILLIAD</option>
-  <option value="10000">KTA</option>
-  <option value="50000">BPJS</option>
-  <option value="50000">MEDICAL CHECKUP</option>
-  <option value="operasi">OPERASI</option>
-  <option value="surat">SURAT</option>
-  <option value="lain">LAIN-LAIN</option>
 </select>
 </div>
 
@@ -225,6 +214,40 @@ const suratSection = document.getElementById("suratSection");
 const lainSection = document.getElementById("lainSection");
 
 const tanggalInvoice = document.getElementById("tanggalInvoice");
+
+invoiceType.innerHTML = `<option value="">Pilih Invoice</option>`;
+
+fetch(SCRIPT_URL + "?action=getPriceList")
+  .then(res => res.json())
+  .then(data => {
+
+    // 1. inject dari SHEET dulu
+    data.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.label;
+      opt.textContent = item.label;
+      opt.dataset.price = item.price;
+      invoiceType.appendChild(opt);
+    });
+
+    // 2. baru inject special
+    injectSpecialOptions();
+  });
+
+function injectSpecialOptions() {
+  const specialOptions = [
+    { value: "operasi", text: "OPERASI" },
+    { value: "surat", text: "SURAT" },
+    { value: "lain", text: "LAIN-LAIN" }
+  ];
+
+  specialOptions.forEach(opt => {
+    const el = document.createElement("option");
+    el.value = opt.value;
+    el.textContent = opt.text;
+    invoiceType.appendChild(el);
+  });
+}
 
 (function(){
 
@@ -305,20 +328,45 @@ function updateTotal(){
     document.getElementById("total").innerText = "$KK "+Number(total).toLocaleString("id-ID");
 }
 
-invoiceType.addEventListener("change", function(){
+invoiceType.addEventListener("change", function () {
     normalSection.classList.add("hidden");
     operasiSection.classList.add("hidden");
     suratSection.classList.add("hidden");
     lainSection.classList.add("hidden");
 
-    if(this.value==="operasi") operasiSection.classList.remove("hidden");
-    else if(this.value==="surat") suratSection.classList.remove("hidden");
-    else if(this.value==="lain") lainSection.classList.remove("hidden");
-    else{
-        normalSection.classList.remove("hidden");
-        if(!isNaN(this.value)) harga.value = this.value;
-        else harga.value = "";
+    const selected = this.options[this.selectedIndex];
+    const price = selected?.dataset?.price;
+
+    // =====================
+    // MODE OPERASI
+    // =====================
+    if (this.value === "operasi") {
+        operasiSection.classList.remove("hidden");
+        harga.value = "";
     }
+
+    // SURAT
+    else if (this.value === "surat") {
+        suratSection.classList.remove("hidden");
+        harga.value = "";
+    }
+
+    // LAIN
+    else if (this.value === "lain") {
+        lainSection.classList.remove("hidden");
+        harga.value = "";
+    }
+
+    // =====================
+    // SIMPLE INVOICE (INI FIX UTAMA)
+    // =====================
+    else {
+        normalSection.classList.remove("hidden");
+
+        // 🔥 INI YANG HILANG DI KAMU
+        harga.value = price || 0;
+    }
+
     updateTotal();
 });
 
