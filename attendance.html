@@ -393,21 +393,33 @@ async function startDuty(){
   setStatus("loading","STARTING...");
 
   const data = emsData[currentUser];
-
   if(!data) return;
 
-  await fetch(
-    API +
-    "?action=startDuty" +
-    "&nama=" + encodeURIComponent(currentUser) +
-    "&jabatan=" + encodeURIComponent(data.jabatan || "") +
-    "&divisi=" + encodeURIComponent(data.divisi || "")
-  );
+  try {
+    const res = await fetch(
+      API +
+      "?action=startDuty" +
+      "&nama=" + encodeURIComponent(currentUser) +
+      "&jabatan=" + encodeURIComponent(data.jabatan || "") +
+      "&divisi=" + encodeURIComponent(data.divisi || "")
+    );
 
-  document.querySelector(".start").disabled=true;
-  document.querySelector(".finish").disabled=false;
+    const result = await res.json();
 
-  checkSession(currentUser);
+    if(!result.success){
+      setStatus("off", result.message || "FAILED START DUTY");
+      return;
+    }
+
+    document.querySelector(".start").disabled = true;
+    document.querySelector(".finish").disabled = false;
+
+    await checkSession(currentUser);
+
+  } catch (err) {
+    console.error(err);
+    setStatus("off","NETWORK ERROR / API FAILED");
+  }
 }
 
 async function finishDuty(){
