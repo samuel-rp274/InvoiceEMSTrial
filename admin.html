@@ -192,40 +192,68 @@ function parseDateSafe(dateStr){
 // =========================
 // BUILD WEEK SELECT
 // =========================
+
 function populateWeeks(){
   const select = document.getElementById("weekSelect");
   select.innerHTML = "";
 
   const weeks = {};
 
+  // =========================
+  // BUILD UNIQUE WEEK LIST
+  // =========================
   allSalaryData.forEach(i => {
-    const key = i.week;
-
-    if(!weeks[key]){
-      const [s,e] = key.split("|");
-      const start = new Date(s);
-
-      weeks[key] = { start };
-    }
+    if (!i.week) return;
+    weeks[i.week] = true;
   });
 
-  Object.keys(weeks).forEach(key=>{
+  const weekKeys = Object.keys(weeks);
+
+  // =========================
+  // TODAY (FOR AUTO SELECT)
+  // =========================
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  let defaultIndex = 0;
+
+  // =========================
+  // CREATE OPTIONS
+  // =========================
+  weekKeys.forEach((key, index) => {
     const opt = document.createElement("option");
     opt.value = key;
-    opt.textContent = key;
+
+    const [startStr, endStr] = key.split("|");
+
+    const startDate = new Date(startStr);
+    const endDate = new Date(endStr);
+
+    // FORMAT LABEL
+    opt.textContent = `${startStr} s/d ${endStr}`;
+
+    // =========================
+    // AUTO SELECT CURRENT WEEK
+    // =========================
+    if (today >= startDate && today <= endDate) {
+      defaultIndex = index;
+    }
+
     select.appendChild(opt);
   });
 
+  // =========================
+  // EVENT CHANGE
+  // =========================
   select.addEventListener("change", renderTable);
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      if (select.options.length > 0) {
-        select.selectedIndex = select.options.length - 1;
-        select.dispatchEvent(new Event("change"));
-      }
-    }, 0);
-  });
+  // =========================
+  // AUTO SELECT + TRIGGER
+  // =========================
+  if (select.options.length > 0) {
+    select.selectedIndex = defaultIndex;
+    select.dispatchEvent(new Event("change"));
+  }
 }
 
 // =========================
