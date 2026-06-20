@@ -45,6 +45,10 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
 .ts-dropdown .active{background:var(--primary)!important;}
 .hidden{display:none;}
 .detail-row{background:#1a202c;}
+
+.btn-green { background:#22c55e; }
+.btn-red { background:#ef4444; }
+.btn-orange { background:#f59e0b; }
 </style>
 </head>
 <body>
@@ -132,74 +136,93 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
-const LOGIN_KEY = "ems_admin_login";  
-let allAttendance=[], weekRanges=[];
-let rateCache = {}; 
+const LOGIN_KEY = "ems_admin_login";
 
-async function loadRateCache(){
-  const res = await fetch(SCRIPT_URL + "?action=getAllRate"); // nanti kita buat
-  const data = await res.json();
+let allAttendance = [];
+let rateDivisiCache = {};
+let rateJabatanCache = {};
+let potonganCache = {};
+let rateDivisiMap = {};
+let rateJabatanMap = {};
 
-  rateCache = {};
+function safeGet(obj, key){
+  if(!obj) return null;
 
-  data.forEach(item => {
-    rateCache[item.divisi] = Number(item.rate || 0);
-  });
+  return obj[key]
+    ?? obj[key?.trim?.()]
+    ?? obj[key?.toUpperCase?.()]
+    ?? obj[key?.toLowerCase?.()]
+    ?? null;
 }
 
-// FIX: parser tanggal anti timezone shift
-function parseDateSafe(dateStr){
-  const d = new Date(dateStr);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-// Login Admin
+// =========================
+// LOGIN
+// =========================
 async function checkLogin(){
   const pw = document.getElementById("adminPassword").value.trim();
-  document.getElementById("loginStatus").innerText = "⏳ Memeriksa password...";
+  document.getElementById("loginStatus").innerText = "⏳ Checking...";
+
   try{
     const res = await fetch(`${SCRIPT_URL}?action=verifyAdmin&password=${encodeURIComponent(pw)}`);
     const data = await res.json();
-	
-	if(data.success){
-		sessionStorage.setItem(LOGIN_KEY, "true");
 
-		document.getElementById("loginCard").classList.add("hidden");
-		document.getElementById("adminPanel").classList.remove("hidden");
-    document.getElementById("navbar").style.display = "flex";
+    if(data.success){
+      sessionStorage.setItem(LOGIN_KEY, "true");
 
-		loadAttendanceData();
-	}
-		
-	else {
+      document.getElementById("loginCard").classList.add("hidden");
+      document.getElementById("adminPanel").classList.remove("hidden");
+      document.getElementById("navbar").style.display = "flex";
+
+      loadAttendanceData();
+    } else {
       document.getElementById("loginStatus").innerText = "❌ Password salah";
     }
-  }catch(e){
-    document.getElementById("loginStatus").innerText = "❌ Gagal memeriksa password";
+  } catch(e){
+    document.getElementById("loginStatus").innerText = "❌ Server error";
   }
 }
 
-// Load Attendance
-let attendanceCache = null;
-
+// =========================
+// LOAD DATA
+// =========================
 async function loadAttendanceData(){
+  const res = await fetch(SCRIPT_URL+"?action=getAttendanceLog");
+  allAttendance = await res.json();
 
-  if(!attendanceCache){
-    const res = await fetch(SCRIPT_URL+"?action=getAttendanceLog");
-    attendanceCache = await res.json();
-  }
+  await loadPotonganCache();
 
-  allAttendance = attendanceCache;
-
-  // nanti kita ganti potongan → rate
-  if(Object.keys(rateCache).length === 0){
-    await loadRateCache();
-  }
+  await loadRates();
 
   populateWeeks();
   renderAttendanceTable();
 }
 
+async function loadRates(){
+  const res = await fetch(SCRIPT_URL + "?action=getRatesAPI");
+  const data = await res.json();
+
+  // =========================
+  // MAP DIVISI
+  // =========================
+  data.divisi.forEach(r => {
+    const key = String(r[0]).trim().toUpperCase();
+    const val = Number(r[1]);
+    rateDivisiMap[key] = val;
+  });
+
+  // =========================
+  // MAP JABATAN
+  // =========================
+  data.jabatan.forEach(r => {
+    const key = String(r[0]).trim().toUpperCase();
+    const val = Number(r[1]);
+    rateJabatanMap[key] = val;
+  });
+}
+
+// =========================
+// WEEK DROPDOWN
+// =========================
 function populateWeeks(){
   const select = document.getElementById("weekSelect");
   select.innerHTML = "";
@@ -207,242 +230,374 @@ function populateWeeks(){
   const weeks = {};
 
   allAttendance.forEach(i => {
-    const date = parseDateSafe(i["Start"]); // 🔁 FIX INI
-    date.setHours(0,0,0,0);
+    if(!i.Start) return;
 
-    const start = new Date(date);
-    start.setDate(start.getDate() - date.getDay());
+    const d = new Date(i.Start);
+    if(isNaN(d.getTime())) return;
+
+    d.setHours(0,0,0,0);
+
+    const start = new Date(d);
+    start.setDate(start.getDate() - start.getDay());
 
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     end.setHours(23,59,59,999);
 
-    const formatDate = (d) =>
-      d.getFullYear() + "-" +
-      String(d.getMonth()+1).padStart(2,"0") + "-" +
-      String(d.getDate()).padStart(2,"0");
+    const key =
+      start.toISOString().slice(0,10) + "|" +
+      end.toISOString().slice(0,10);
 
-    const key = formatDate(start) + "|" + formatDate(end);
-
-    if(!weeks[key]) weeks[key] = { start, end };
+    weeks[key] = {start, end};
   });
 
-  Object.keys(weeks).forEach(key=>{
+  const keys = Object.keys(weeks);
+
+  if(keys.length === 0){
+    select.innerHTML = `<option>Tidak ada data</option>`;
+    return;
+  }
+
+  keys.forEach(k => {
     const opt = document.createElement("option");
-    opt.value = key;
-
-    const [s,e] = key.split("|");
-    opt.textContent = `${s} s/d ${e}`;
-
+    opt.value = k;
+    opt.textContent = k.replace("|"," s/d ");
     select.appendChild(opt);
   });
 
   select.onchange = renderAttendanceTable;
 
-  setTimeout(() => {
-  if (select.options.length > 0) {
-    select.selectedIndex = select.options.length - 1;
-    select.dispatchEvent(new Event("change"));
-  }
-}, 0);
+  select.selectedIndex = keys.length - 1;
+  renderAttendanceTable();
 }
 
-async function renderAttendanceTable(){
+// =========================
+// RENDER TABLE
+// =========================
+function renderAttendanceTable(){
   const select = document.getElementById("weekSelect");
   const key = select.value;
-  if(!key) return;
+
+  if(!key){
+    document.getElementById("tbody").innerHTML =
+      `<tr><td colspan="7">Pilih minggu dulu</td></tr>`;
+    return;
+  }
 
   const [startStr, endStr] = key.split("|");
-  const start = new Date(startStr + "T00:00:00");
-  const end = new Date(endStr + "T23:59:59");
+  const start = new Date(startStr);
+  const end = new Date(endStr);
 
-  // 🔥 FILTER ATTENDANCE DATA
+  const normalize = s => String(s || "").trim().toUpperCase();
+
+  // =========================
+  // FILTER WEEK
+  // =========================
   const weekData = allAttendance.filter(i => {
-    const t = parseDateSafe(i["Start"]); // COL C dari sheet kamu
+    if(!i.Start) return false;
+
+    const t = new Date(i.Start);
+    if(isNaN(t.getTime())) return false;
+
     return t >= start && t <= end;
   });
 
   // =========================
-  // 1. STATUS DUTY (CARD 1)
+  // STATUS SUMMARY
   // =========================
-  const validDuty = weekData.filter(i => i.Status === "VALID");
-  const pendingDuty = weekData.filter(i => i.Status === "PENDING");
+  const valid = weekData.filter(i => normalize(i.Status) === "VALID");
+  const pending = weekData.filter(i => normalize(i.Status) === "PENDING");
 
-  document.getElementById("pendingDuty").innerText = pendingDuty.length;
-  document.getElementById("jumlahDuty").innerText = validDuty.length;
+  document.getElementById("pendingDuty").innerText = pending.length;
+  document.getElementById("jumlahDuty").innerText = valid.length;
 
-  // =========================
-  // 2. ON DUTY (CARD 2)
-  // =========================
-  const onDuty = weekData.filter(i => !i.Finish || i.Finish === "");
+  const onDuty = weekData.filter(i => !i.Finish);
   document.getElementById("onDutyCount").innerText = onDuty.length;
 
   // =========================
-  // 3. GROUPING PER ORANG
+  // PAYROLL GROUPING
   // =========================
   const payroll = {};
 
-  for (const i of weekData) {
+  for(const i of weekData){
 
-    const nama = i["Nama"];
-    const divisi = String(i["Divisi"] || "").trim().toUpperCase();
-    const jabatan = i["Jabatan"];
+    const nama = i.Nama || "-";
+   const divisi = normalize(i.Divisi);
+   const jabatan = normalize(i.Jabatan);
 
-    // durasi sudah ada di sheet (kolom E)
-    const durasiStr = i["Durasi"] || "0h 0m";
-
-    // convert "2h 30m" → menit
-    const match = durasiStr.match(/(\d+)h\s*(\d+)m/);
-    const minutes = match ? (parseInt(match[1]) * 60 + parseInt(match[2])) : 0;
-
-    if (!payroll[nama]) {
+    if(!payroll[nama]){
       payroll[nama] = {
         nama,
         divisi,
         jabatan,
-        totalMinutes: 0,
+       validMinutes: 0,
+       gaji: 0,
         sessions: []
-      };
+     };
     }
 
-    if (i.Status === "VALID") {
-      payroll[nama].totalMinutes += minutes;
+   // =========================
+   // PARSE DURASI
+   // =========================
+   const match = (i.Durasi || "").match(/(\d+)h\s*(\d+)m/);
+   const minutes = match ? (+match[1] * 60 + +match[2]) : 0;
+
+    // =========================
+   // VALID ONLY PAYROLL
+   // =========================
+   if(normalize(i.Status) === "VALID"){
+
+     payroll[nama].validMinutes += minutes;
+
+      const hours = minutes / 60;
+
+      // =========================
+      // PRIORITY RATE SYSTEM
+      // =========================
+     const priorityDivisi = ["PETINGGI","PENGURUS","SPESIALIS"];
+
+     let rate = 0;
+
+     if(priorityDivisi.includes(divisi)){
+        rate = rateDivisiMap[divisi] || 0;
+      } else {
+        rate = rateJabatanMap[jabatan] || 0;
+     }
+
+      const gajiValue = hours * rate;
+
+     payroll[nama].gaji += gajiValue;
     }
 
-    payroll[nama].sessions.push(i);
+    // =========================
+   // ALWAYS PUSH SESSION
+   // =========================
+   payroll[nama].sessions.push(i);
   }
 
   // =========================
-  // 4. TOP 3 DUTY
-  // =========================
-  const top3 = Object.values(payroll)
-    .sort((a,b) => b.totalMinutes - a.totalMinutes)
-    .slice(0,3);
-
-  const formatHM = (min) => {
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return `${h}h ${m}m`;
-  };
-
-  document.getElementById("topDuty").innerHTML =
-    top3.map((x, i) => `
-      <div style="margin-bottom:8px">
-        <div class="top-name">${["🥇","🥈","🥉"][i]} ${x.nama}</div>
-        <div class="top-salary">${formatHM(x.totalMinutes)}</div>
-      </div>
-    `).join("");
-
-  // =========================
-  // 5. TABLE RENDER
+  // RENDER TABLE
   // =========================
   const tbody = document.getElementById("tbody");
 
   if(Object.keys(payroll).length === 0){
-    tbody.innerHTML = `<tr><td colspan="7" class="empty">Belum ada data attendance</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">No data</td></tr>`;
     return;
   }
 
   tbody.innerHTML = Object.values(payroll).map((v, idx) => {
 
-    const rate = rateCache[v.divisi] || 0;
-    const hours = v.totalMinutes / 60;
-    const totalPay = hours * rate;
+    const validHours = v.validMinutes / 60;
+    const rateHour = validHours > 0 ? (v.gaji / validHours) : 0;
 
     return `
       <tr>
         <td>${v.nama}</td>
         <td>${v.jabatan}</td>
         <td>${v.divisi}</td>
-        <td>${formatHM(v.totalMinutes)}</td>
-        <td>${rate.toLocaleString("id-ID")}</td>
-        <td>${totalPay.toLocaleString("id-ID")}</td>
+
+        <!-- TOTAL JAM VALID -->
+        <td>${Math.floor(validHours)}h ${v.validMinutes % 60}m</td>
+
+        <!-- RATE / HOUR -->
+        <td>${rateHour.toFixed(0)}</td>
+
+        <!-- TOTAL GAJI -->
+        <td>${Math.floor(v.gaji).toLocaleString("id-ID")}</td>
+
         <td><a onclick="toggleDetail(${idx})">Detail</a></td>
       </tr>
 
-      <tr class="detail-row hidden" id="detail-${idx}">
+      <tr id="detail-${idx}" class="hidden">
         <td colspan="7">
-          <table style="width:100%">
-            <thead>
-              <tr>
-                <th>Start</th>
-                <th>Finish</th>
-                <th>Durasi</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${v.sessions.map(s => `
-                <tr>
-                  <td>${s.Start}</td>
-                  <td>${s.Finish || "-"}</td>
-                  <td>${s.Durasi}</td>
-                  <td>${s.Status}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+
+          ${v.sessions.map(s => `
+            <div style="
+              display:grid;
+              grid-template-columns: 2fr 2fr 1fr 1fr 2fr;
+              gap:10px;
+              padding:12px;
+              margin-bottom:8px;
+              background:#111827;
+              border-radius:12px;
+              align-items:center;
+              font-size:13px;
+            ">
+
+              <div>${s.Start || "-"}</div>
+              <div>${s.Finish || "-"}</div>
+              <div>${s.Durasi || "-"}</div>
+
+              <div>
+                <span style="
+                  padding:4px 10px;
+                  border-radius:8px;
+                  font-size:12px;
+                  background:${normalize(s.Status) === "VALID" ? "#22c55e" : "#f59e0b"};
+                  color:white;">
+                  ${s.Status || "-"}
+                </span>
+              </div>
+
+              <div style="display:flex; gap:6px;">
+                <button class="btn-green"
+                  onclick="setStatus('${s.RowIndex}','VALID')">
+                  V
+                </button>
+
+                <button class="btn-red"
+                  onclick="setStatus('${s.RowIndex}','INVALID')">
+                  X
+                </button>
+
+                <button class="btn-orange"
+                  onclick="editTime('${s.RowIndex}','${s.Start}','${s.Finish}')">
+                  EDIT
+                </button>
+              </div>
+
+            </div>
+          `).join("")}
+
         </td>
       </tr>
     `;
   }).join("");
 }
 
+// =========================
+// DETAIL
+// =========================
 function toggleDetail(idx){
-  const id = "detail-" + idx;
-  const row = document.getElementById(id);
-  if(row) row.classList.toggle("hidden");
+  document.getElementById("detail-"+idx).classList.toggle("hidden");
 }
 
-function updateAttendanceStatus(rowId, status){
+// =========================
+// CACHE
+// =========================
+async function loadPotonganCache(){
+  const res = await fetch(SCRIPT_URL+"?action=getAllPotongan");
+  const data = await res.json();
 
-  fetch(`${SCRIPT_URL}?action=updateAttendanceStatus&rowId=${rowId}&status=${status}`)
+  data.forEach(i=>{
+    potonganCache[i.divisi] = Number(i.potongan || 0);
+  });
+}
+
+function setStatus(rowIndex, status){
+  fetch(`${SCRIPT_URL}?action=updateAttendanceStatus&rowIndex=${rowIndex}&status=${status}`)
     .then(res => res.json())
     .then(data => {
       if(data.success){
-
-        // safety check
-        const item = allAttendance.find(x => String(x.RowIndex) == String(rowId));
-        if(item) item.Status = status;
-                
-        // re-render UI
-        renderAttendanceTable();
-
+        loadAttendanceData();
       } else {
         alert("Gagal update status");
       }
     })
     .catch(err => {
       console.error(err);
-      alert("Error update status");
+      alert("Error koneksi server");
     });
 }
 
-window.addEventListener("load", () => {
-  const isLoggedIn = sessionStorage.getItem(LOGIN_KEY);
+let currentEditId = null;
 
-  if(isLoggedIn === "true"){
+function editTime(rowIndex, start, finish){
+  currentEditId = rowIndex;
+
+  // isi default value ke modal
+  document.getElementById("editStart").value = convertToInputDate(start);
+  document.getElementById("editFinish").value = convertToInputDate(finish);
+
+  document.getElementById("editModal").style.display = "flex";
+}
+
+function closeModal(){
+  document.getElementById("editModal").style.display = "none";
+}
+
+function saveEdit(){
+  const start = document.getElementById("editStart").value;
+  const finish = document.getElementById("editFinish").value;
+
+  fetch(`${SCRIPT_URL}?action=updateSessionTime&rowIndex=${currentEditId}&start=${start}&finish=${finish}`)
+    .then(res => res.json())
+    .then(data => {
+      if(data.success){
+        closeModal();
+        loadAttendanceData();
+      } else {
+        alert("Gagal update");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Server error");
+    });
+}
+
+function convertToInputDate(str){
+  if(!str) return "";
+
+  const d = new Date(str);
+  if(isNaN(d.getTime())) return "";
+
+  const pad = n => String(n).padStart(2,"0");
+
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// =========================
+// AUTO LOGIN
+// =========================
+window.addEventListener("load", () => {
+  if(sessionStorage.getItem(LOGIN_KEY) === "true"){
     document.getElementById("loginCard").classList.add("hidden");
     document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("navbar").style.display = "flex";
     loadAttendanceData();
   }
 });
-
-function handleNavbar(){
-  const navbar = document.getElementById("navbar");
-  if (!navbar) return;
-
-  const isLoggedIn = sessionStorage.getItem("ems_admin_login");
-
-  if (isLoggedIn === "true") {
-    navbar.style.display = "flex";
-  } else {
-    navbar.style.display = "none";
-  }
-}
-
-window.addEventListener("load", handleNavbar);
-
 </script>
+
+<div id="editModal" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+
+  <div style="
+    background:#1e293b;
+    padding:20px;
+    border-radius:16px;
+    width:400px;
+    color:white;
+  ">
+
+    <h2 style="margin-bottom:15px;">Edit Attendance</h2>
+
+    <label>Start</label>
+    <input id="editStart" type="datetime-local" style="width:100%;margin-bottom:10px;padding:10px;border-radius:8px;border:none;">
+
+    <label>Finish</label>
+    <input id="editFinish" type="datetime-local" style="width:100%;margin-bottom:15px;padding:10px;border-radius:8px;border:none;">
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="saveEdit()" style="background:#22c55e;color:white;padding:10px 15px;border:none;border-radius:8px;">
+        Save
+      </button>
+
+      <button onclick="closeModal()" style="background:#ef4444;color:white;padding:10px 15px;border:none;border-radius:8px;">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
