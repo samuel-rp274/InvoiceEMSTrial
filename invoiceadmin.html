@@ -176,10 +176,10 @@ async function checkLogin(){
 	}
 		
 	else {
-      document.getElementById("loginStatus").innerText = "❌ Password salah";
+      document.getElementById("loginStatus").innerText = "❌ Password salah, maksimal 3x salah maka IP akan di block";
     }
   }catch(e){
-    document.getElementById("loginStatus").innerText = "❌ Gagal memeriksa password";
+    document.getElementById("loginStatus").innerText = "❌ Server error, silahkan hubungi FINANCE";
   }
 }
 
