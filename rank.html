@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>EMSKK Duty Ranking</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background: radial-gradient(circle at top, #1e293b, #0f172a);
+  color:white;
+  display:flex;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:1100px;
+  padding:30px;
+}
+
+h2{
+  margin-bottom:20px;
+}
+
+/* TOPBAR */
+.topbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+  background:rgba(255,255,255,0.05);
+  padding:15px;
+  border-radius:14px;
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#334155;
+  color:white;
+  cursor:pointer;
+}
+
+button.active{
+  background:#22c55e;
+  color:black;
+  font-weight:bold;
+}
+
+select{
+  padding:10px;
+  border-radius:10px;
+  background:#1e293b;
+  color:white;
+}
+
+/* TABLE */
+.table-wrap{
+  background:rgba(255,255,255,0.04);
+  border-radius:16px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  background:#0b1220;
+  padding:14px;
+  text-align:center;
+}
+
+td{
+  padding:14px;
+  border-bottom:1px solid #334155;
+  text-align:center;
+}
+
+td:nth-child(2){
+  text-align:left;
+}
+
+.rank{
+  color:#fbbf24;
+  font-weight:bold;
+}
+
+tr:hover td{
+  background:rgba(255,255,255,0.03);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>EMSKK Duty Ranking</h2>
+
+<div class="topbar">
+
+  <button id="weeklyBtn" class="active" onclick="setMode('weekly')">Weekly</button>
+  <button id="monthlyBtn" onclick="setMode('monthly')">Monthly</button>
+
+  <select id="periodSelect" onchange="render()"></select>
+
+  <button onclick="loadData()">Refresh</button>
+
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Nama</th>
+<th>Total Jam</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th colspan="2">BELUM PERNAH DUTY</th>
+</tr>
+<tr>
+<th>No</th>
+<th>Nama</th>
+</tr>
+</thead>
+<tbody id="neverDutyTable"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
+
+let allData = [];
+let masterData = [];
+let mode = "weekly";
+let periods = [];
+let selectedPeriod = "";
+
+/* ================= DATE ================= */
+function parseDate(str){
+  if(!str) return null;
+  return new Date(str.replace(" ","T"));
+}
+
+/* ================= WEEK KEY SINGLE SOURCE ================= */
+function getWeekKey(d){
+
+  const local = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  const ws = new Date(local);
+  ws.setDate(local.getDate() - local.getDay());
+  ws.setHours(0,0,0,0);
+
+  const we = new Date(ws);
+  we.setDate(ws.getDate() + 6);
+  we.setHours(23,59,59,999);
+
+  const fmt = (x)=>
+    `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+
+  return `${fmt(ws)}|${fmt(we)}`;
+}
+
+/* ================= HOURS ================= */
+function getDurationHours(s,f){
+  const a=parseDate(s);
+  const b=parseDate(f);
+  if(!a||!b) return 0;
+  return (b-a)/(1000*60*60);
+}
+
+/* ================= FORMAT ================= */
+function formatHours(h){
+  const m=Math.floor(h*60);
+  return `${Math.floor(m/60)}h ${m%60}m`;
+}
+
+/* ================= LOAD ================= */
+async function loadData(){
+
+  const res = await fetch(SCRIPT_URL + "?action=getAttendanceLog");
+  allData = await res.json() || [];
+
+  const res2 = await fetch(SCRIPT_URL + "?action=getEMSList");
+  const raw = await res2.json() || [];
+
+  // 🔥 FIX FINAL MASTER CLEAN
+  masterData = raw
+    .map(x => {
+      if (!x) return "";
+      if (typeof x === "string") return x;
+      if (x.nama) return x.nama;
+      return "";
+    })
+    .map(n => String(n).trim())
+    .filter(n =>
+      n &&
+      n !== "undefined" &&
+      n !== "-" &&
+      !/^\d+(\.\d+)?$/.test(n) // ❗ BLOCK ANGKA TOTAL
+    );
+
+  buildPeriods();
+  render();
+}
+
+/* ================= PERIOD ================= */
+function buildPeriods(){
+
+  const weekMap = {};
+  const monthSet = new Set();
+
+  allData.forEach(r=>{
+
+    if(!r.Start || r.Status !== "VALID") return;
+
+    const d=parseDate(r.Start);
+    if(!d) return;
+
+    weekMap[getWeekKey(d)] = true;
+
+    const local = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    monthSet.add(`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}`);
+  });
+
+  periods = mode==="weekly"
+    ? Object.keys(weekMap).sort().reverse()
+    : Array.from(monthSet).sort().reverse();
+
+  const sel=document.getElementById("periodSelect");
+  sel.innerHTML="";
+
+  periods.forEach(p=>{
+    const o=document.createElement("option");
+    o.value=p;
+    o.textContent=p;
+    sel.appendChild(o);
+  });
+
+  if(periods.length){
+    selectedPeriod = periods[0];
+    sel.value = selectedPeriod;
+  }
+}
+
+/* ================= RENDER ================= */
+function render(){
+
+  selectedPeriod = document.getElementById("periodSelect").value;
+
+  const map = {};
+
+  allData.forEach(r => {
+
+    if (!r.Start || r.Status !== "VALID") return;
+
+    const d = parseDate(r.Start);
+    if (!d) return;
+
+    let match = false;
+
+    if (mode === "weekly") {
+      match = getWeekKey(d) === selectedPeriod;
+    } else {
+      const local = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const mKey = `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}`;
+      match = mKey === selectedPeriod;
+    }
+
+    if (!match) return;
+
+    const h = getDurationHours(r.Start, r.Finish);
+    const n = String(r.Nama || "").trim();
+
+    if (!n) return;
+
+    if (!map[n]) map[n] = 0;
+    map[n] += h;
+  });
+
+  const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
+
+  const tb = document.getElementById("tableBody");
+  tb.innerHTML = "";
+
+  sorted.forEach((x, i) => {
+    tb.innerHTML += `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td>${x[0]}</td>
+        <td>${formatHours(x[1])}</td>
+      </tr>
+    `;
+  });
+
+  /* ================= NEVER DUTY (FIX FINAL) ================= */
+
+  const dutySet = new Set(
+    sorted.map(x => x[0].trim().toLowerCase())
+  );
+
+  const never = masterData
+    .filter(n => n && n.trim())
+    .filter(n => !/^\d+(\.\d+)?$/.test(n)) // ❗ BLOCK ANGKA
+    .filter(n => n.toLowerCase() !== "nama")
+    .filter(n => !dutySet.has(n.trim().toLowerCase()));
+
+  const tb2 = document.getElementById("neverDutyTable");
+  tb2.innerHTML = "";
+
+  never.forEach((u, i) => {
+    tb2.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${u}</td>
+      </tr>
+    `;
+  });
+}
+
+/* ================= MODE ================= */
+function setMode(m){
+
+  mode=m;
+
+  document.getElementById("weeklyBtn").classList.remove("active");
+  document.getElementById("monthlyBtn").classList.remove("active");
+
+  if(m==="weekly"){
+    document.getElementById("weeklyBtn").classList.add("active");
+  } else {
+    document.getElementById("monthlyBtn").classList.add("active");
+  }
+
+  buildPeriods();
+  render();
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>
