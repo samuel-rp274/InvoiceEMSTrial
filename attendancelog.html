@@ -300,11 +300,21 @@ async function loadEMS(){
 		placeholder: "Cari nama EMS...",
 		dropdownParent: "body",
 		onChange: function(value){
-			render(value);
+			localStorage.setItem("ems_name", value);
+            render(value);
 		}
 	});
 		
 	loadData();
+
+    const saved = localStorage.getItem("ems_name");
+
+    if (saved) {
+        setTimeout(() => {
+            ts.setValue(saved);
+            render(saved);
+        }, 100);
+    }
 }
 
 async function loadData(){
