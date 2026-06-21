@@ -493,7 +493,7 @@ function renderAttendanceTable(){
     const rateHour = validHours > 0 ? (v.gaji / validHours) : 0;
 
     return `
-      <tr>
+      <tr data-row="${v.sessions[0]?.RowIndex}">
         <td>${v.nama}</td>
         <td>${v.jabatan}</td>
         <td>${v.divisi}</td>
@@ -526,12 +526,12 @@ function renderAttendanceTable(){
               font-size:13px;
             ">
 
-              <div>${s.Start || "-"}</div>
-              <div>${s.Finish || "-"}</div>
+              <div class="start">${s.Start || "-"}</div>
+              <div class="finish">${s.Finish || "-"}</div>  
               <div>${s.Durasi || "-"}</div>
 
               <div>
-                <span style="
+                <span class="status-badge" style="
                   padding:4px 10px;
                   border-radius:8px;
                   font-size:12px;
@@ -590,11 +590,12 @@ function setStatus(rowIndex, status){
   fetch(`${SCRIPT_URL}?action=updateAttendanceStatus&rowIndex=${rowIndex}&status=${status}`)
     .then(res => res.json())
     .then(data => {
-      if(data.success){
-        loadAttendanceData();
-      } else {
-        alert("Gagal update status");
+      if(!data.success){
+        throw new Error("Gagal update status");
       }
+
+      // 🔥 update server selesai → refresh data lokal
+      return loadAttendanceData();
     })
     .catch(err => {
       console.error(err);
@@ -625,27 +626,49 @@ function saveEdit(){
   fetch(`${SCRIPT_URL}?action=updateSessionTime&rowIndex=${currentEditId}&start=${start}&finish=${finish}`)
     .then(res => res.json())
     .then(data => {
-      if(data.success){
-
-        // AUTO SET VALID setelah edit sukses
-        return fetch(`${SCRIPT_URL}?action=updateAttendanceStatus&rowIndex=${currentEditId}&status=VALID`);
-      } else {
+      if(!data.success){
         throw new Error("Gagal update waktu");
       }
+
+      return fetch(`${SCRIPT_URL}?action=updateAttendanceStatus&rowIndex=${currentEditId}&status=VALID`);
     })
     .then(res => res.json())
     .then(data => {
-      if(data.success){
-        closeModal();
-        loadAttendanceData();
-      } else {
-        alert("Gagal set status VALID");
+      if(!data.success){
+        throw new Error("Gagal set VALID");
       }
+
+      closeModal();
+
+      // 🔥 AMAN: reload data dari server (ini yang benar)
+      return loadAttendanceData();
     })
     .catch(err => {
       console.error(err);
       alert("Server error");
     });
+}
+
+function updateStatusLocal(rowIndex, status){
+  const row = document.querySelector(`[data-row='${rowIndex}']`);
+  if(!row) return;
+
+  const badge = row.querySelector(".status-badge");
+  if(badge){
+    badge.innerText = status;
+    badge.style.background = status === "VALID" ? "#22c55e" : "#f59e0b";
+  }
+}
+
+function updateTimeLocal(rowIndex, start, finish){
+  const row = document.querySelector(`[data-row='${rowIndex}']`);
+  if(!row) return;
+
+  const startEl = row.querySelector(".start");
+  const finishEl = row.querySelector(".finish");
+
+  if(startEl) startEl.innerText = start;
+  if(finishEl) finishEl.innerText = finish;
 }
 
 function convertToInputDate(str){
