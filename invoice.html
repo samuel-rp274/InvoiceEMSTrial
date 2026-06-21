@@ -294,9 +294,18 @@ fetch(SCRIPT_URL + "?action=getEMS")
         sortField: { field: "text", direction: "asc" }
     });
 
-    setTimeout(() => {
-        tomSelectNama.clear(true);
-    }, 100);
+    tomSelectNama.on("change", (v) => {
+      localStorage.setItem("ems_name", v);
+
+      jabatan.value = emsData[v]?.jabatan || "";
+      divisi.value = emsData[v]?.divisi || "";
+    });
+
+    const saved = localStorage.getItem("ems_name");
+
+    if (saved && emsData[saved]) {
+       tomSelectNama.setValue(saved);
+    }
 })
 .catch(err => console.error("Gagal load EMS:", err));
 
