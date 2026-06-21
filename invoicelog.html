@@ -293,11 +293,20 @@ async function loadEMS(){
         sortField:{field:"text",direction:"asc"},
         placeholder:"Cari nama EMS...",
 		dropdownParent: "body",
-        onChange: renderTable
+        onChange: function(value){
+          localStorage.setItem("ems_name", value);
+          renderTable();
+        }
     });
-    tomSelectInstance.clear(true);
-    tomSelectInstance.setValue('');
 
+    const saved = localStorage.getItem("ems_name");
+
+    if (saved) {
+      setTimeout(() => {
+        tomSelectInstance.setValue(saved);
+        renderTable();
+      }, 100);
+    }
     loadData();
 }
 
