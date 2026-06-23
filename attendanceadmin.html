@@ -199,8 +199,14 @@ async function loadAttendanceData(){
   const cached = localStorage.getItem(CACHE_KEY_ATT);
 
   if(cached){
-    const parsed = JSON.parse(cached);
+    let parsed = null;
 
+    try {
+      parsed = JSON.parse(cached);
+    } catch(e){
+      localStorage.removeItem(CACHE_KEY_ATT);
+    }
+    
     // kalau cache masih fresh
     if(isCacheValid(parsed.time)){
       allAttendance = parsed.data;
@@ -696,8 +702,14 @@ function setStatus(rowIndex, status){
       const cached = localStorage.getItem(CACHE_KEY_ATT);
 
       if(cached){
-        const parsed = JSON.parse(cached);
+        let parsed = null;
 
+        try {
+          parsed = JSON.parse(cached);
+        } catch(e){
+          localStorage.removeItem(CACHE_KEY_ATT);
+        }
+        
         parsed.data = parsed.data.map(item => {
           if(String(item.RowIndex) === String(rowIndex)){
             return {
