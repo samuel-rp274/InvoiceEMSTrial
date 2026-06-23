@@ -139,7 +139,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-D
 const LOGIN_KEY = "ems_admin_login";
 const CACHE_KEY_ATT = "attendance_cache_v1";
 const CACHE_KEY_RATE = "rates_cache_v1";
-const CACHE_TTL = 1000 * 60 * 5; // 5 menit
+const CACHE_TTL = 1000 * 60 * 5; 
 
 let allAttendance = [];
 let rateDivisiCache = {};
@@ -163,9 +163,6 @@ function isCacheValid(time){
   return (Date.now() - time) < CACHE_TTL;
 }
 
-// =========================
-// LOGIN
-// =========================
 async function checkLogin(){
   const pw = document.getElementById("adminPassword").value.trim();
   document.getElementById("loginStatus").innerText = "⏳ Memeriksa password...";
@@ -191,11 +188,7 @@ async function checkLogin(){
   }
 }
 
-// =========================
-// LOAD DATA
-// =========================
 async function loadAttendanceData(){
-
   const cached = localStorage.getItem(CACHE_KEY_ATT);
 
   if(cached){
@@ -206,8 +199,7 @@ async function loadAttendanceData(){
     } catch(e){
       localStorage.removeItem(CACHE_KEY_ATT);
     }
-    
-    // kalau cache masih fresh
+
     if(isCacheValid(parsed.time)){
       allAttendance = parsed.data;
 
@@ -215,13 +207,11 @@ async function loadAttendanceData(){
         requestAnimationFrame(() => populateWeeks());
       }
 
-      // sync server di background
       refreshFromServer();
       return;
     }
   }
 
-  // kalau tidak ada cache / expired
   const res = await fetch(SCRIPT_URL+"?action=getAttendanceLog");
   allAttendance = await res.json();
 
@@ -257,14 +247,10 @@ async function refreshFromServer(){
 }
 
 async function loadRates(){
-
   const cached = localStorage.getItem(CACHE_KEY_RATE);
 
   let data = null;
 
-  // =========================
-  // 1. CACHE
-  // =========================
   if(cached){
     try {
       data = JSON.parse(cached);
@@ -273,9 +259,6 @@ async function loadRates(){
     }
   }
 
-  // =========================
-  // 2. FALLBACK FETCH
-  // =========================
   if(!data){
     const res = await fetch(SCRIPT_URL + "?action=getRatesAPI");
     data = await res.json();
@@ -283,18 +266,12 @@ async function loadRates(){
     localStorage.setItem(CACHE_KEY_RATE, JSON.stringify(data));
   }
 
-  // =========================
-  // 3. VALIDASI DATA (INI PENTING)
-  // =========================
   if(!data || !data.divisi || !data.jabatan){
     console.error("Rates format invalid:", data);
     ratesReady = false;
     return;
   }
 
-  // =========================
-  // 4. MAP
-  // =========================
   mapRates(data);
   ratesReady = true;
 }
@@ -321,14 +298,12 @@ function normalizeDate(d){
 function parseWIB(dateStr){
   if(!dateStr) return null;
 
-  // format: yyyy-MM-dd HH:mm:ss
   const [date, time] = dateStr.split(" ");
   if(!date || !time) return null;
 
   const [y,m,d] = date.split("-").map(Number);
   const [hh,mm,ss] = time.split(":").map(Number);
 
-  // paksa jadi WIB (tanpa konversi browser)
   return new Date(y, m-1, d, hh, mm, ss);
 }
 
@@ -337,25 +312,18 @@ function parseKeyDate(str){
   return new Date(y, m-1, d, 0, 0, 0);
 }
 
-// =========================
-// WEEK DROPDOWN
-// =========================
 function populateWeeks(){
   const select = document.getElementById("weekSelect");
   select.innerHTML = "";
 
   const weeks = {};
 
-  // =========================
-  // BUILD WEEK RANGE
-  // =========================
   allAttendance.forEach(i => {
     if(!i.Start) return;
 
     const d = parseWIB(i.Start);
     if(!d) return;
 
-    // normalize ke hari (WIB-safe basic)
     const local = new Date(d);
     local.setHours(0,0,0,0);
 
@@ -385,9 +353,6 @@ function populateWeeks(){
     return;
   }
 
-  // =========================
-  // FILL DROPDOWN
-  // =========================
   keys.forEach(k => {
     const opt = document.createElement("option");
     opt.value = k;
@@ -395,9 +360,6 @@ function populateWeeks(){
     select.appendChild(opt);
   });
 
-  // =========================
-  // AUTO SELECT CURRENT WEEK (FIXED)
-  // =========================
   const now = new Date();
   now.setHours(0,0,0,0);
 
@@ -411,23 +373,17 @@ function populateWeeks(){
     return now >= start && now <= end;
   });
 
-  // fallback kalau tidak ketemu
   if(!currentWeek){
     currentWeek = keys[keys.length - 1];
   }
 
   select.value = currentWeek;
 
-  // bind event ONCE
   select.onchange = renderAttendanceTable;
 
-  // initial render
   renderAttendanceTable();
 }
 
-// =========================
-// RENDER TABLE
-// =========================
 function renderAttendanceTable(){
   const select = document.getElementById("weekSelect");
   const key = select.value;
@@ -444,9 +400,6 @@ function renderAttendanceTable(){
 
   const normalize = s => String(s || "").trim().toUpperCase();
 
-  // =========================
-  // FILTER WEEK
-  // =========================
   const weekData = allAttendance.filter(i => {
     if(!i.Start) return false;
 
@@ -456,13 +409,8 @@ function renderAttendanceTable(){
     return t >= start && t <= end;
   });
 
-  // =========================
-  // STATUS SUMMARY
-  // =========================
   const valid = weekData.filter(i => normalize(i.Status) === "VALID");
-  // =========================
-  // TOP 3 DUTY VALID (THIS WEEK ONLY)
-  // =========================
+
   const topMap = {};
 
   for(const i of weekData){
@@ -513,9 +461,6 @@ function renderAttendanceTable(){
     }).join("");
   }
 
-  // =========================
-  // PAYROLL GROUPING
-  // =========================
   const payroll = {};
 
   for(const i of weekData){
@@ -535,24 +480,15 @@ function renderAttendanceTable(){
      };
     }
 
-   // =========================
-   // PARSE DURASI
-   // =========================
    const match = (i.Durasi || "").match(/(\d+)h\s*(\d+)m/);
    const minutes = match ? (+match[1] * 60 + +match[2]) : 0;
 
-    // =========================
-   // VALID ONLY PAYROLL
-   // =========================
    if(normalize(i.Status) === "VALID"){
 
      payroll[nama].validMinutes += minutes;
 
       const hours = minutes / 60;
 
-      // =========================
-      // PRIORITY RATE SYSTEM
-      // =========================
      const priorityDivisi = ["PETINGGI","PENGURUS","SPESIALIS"];
 
      let rate = 0;
@@ -568,15 +504,9 @@ function renderAttendanceTable(){
      payroll[nama].gaji += gajiValue;
     }
 
-    // =========================
-   // ALWAYS PUSH SESSION
-   // =========================
    payroll[nama].sessions.push(i);
   }
 
-  // =========================
-  // RENDER TABLE
-  // =========================
   const tbody = document.getElementById("tbody");
 
   if(Object.keys(payroll).length === 0){
@@ -664,16 +594,10 @@ function renderAttendanceTable(){
   }).join("");
 }
 
-// =========================
-// DETAIL
-// =========================
 function toggleDetail(idx){
   document.getElementById("detail-"+idx).classList.toggle("hidden");
 }
 
-// =========================
-// CACHE
-// =========================
 async function loadPotonganCache(){
   const res = await fetch(SCRIPT_URL+"?action=getAllPotongan");
   const data = await res.json();
@@ -691,14 +615,8 @@ function setStatus(rowIndex, status){
         throw new Error("Gagal update status");
       }
 
-      // =========================
-      // 1. UPDATE UI LANGSUNG (FAST)
-      // =========================
       updateStatusLocal(rowIndex, status);
 
-      // =========================
-      // 2. UPDATE CACHE LOKAL
-      // =========================
       const cached = localStorage.getItem(CACHE_KEY_ATT);
 
       if(cached){
@@ -720,14 +638,11 @@ function setStatus(rowIndex, status){
           return item;
         });
 
-        parsed.time = Date.now(); // refresh timestamp cache
+        parsed.time = Date.now();
 
         localStorage.setItem(CACHE_KEY_ATT, JSON.stringify(parsed));
       }
 
-      // =========================
-      // 3. REFRESH RINGAN (bukan reload full data)
-      // =========================
       renderAttendanceTable();
     })
     .catch(err => {
@@ -741,7 +656,6 @@ let currentEditId = null;
 function editTime(rowIndex, start, finish){
   currentEditId = rowIndex;
 
-  // isi default value ke modal
   document.getElementById("editStart").value = convertToInputDate(start);
   document.getElementById("editFinish").value = convertToInputDate(finish);
 
@@ -773,7 +687,6 @@ function saveEdit(){
 
       closeModal();
 
-      // 🔥 AMAN: reload data dari server (ini yang benar)
       refreshFromServer();
     })
     .catch(err => {
@@ -815,9 +728,6 @@ function convertToInputDate(str){
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// =========================
-// AUTO LOGIN
-// =========================
 window.addEventListener("load", () => {
   if(sessionStorage.getItem(LOGIN_KEY) === "true"){
     document.getElementById("loginCard").classList.add("hidden");
