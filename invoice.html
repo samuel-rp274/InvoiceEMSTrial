@@ -199,7 +199,7 @@ button:hover{opacity:.9;}
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 const CACHE_KEY_EMS = "ems_cache_v1";
 const CACHE_KEY_PRICE = "price_cache_v1";
-const CACHE_TTL = 1000 * 60 * 10;
+const CACHE_TTL = 1000 * 60 * 15;
 
 function isCacheValid(time){
   return (Date.now() - time) < CACHE_TTL;
