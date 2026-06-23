@@ -18,12 +18,25 @@
   font-family:'Inter', sans-serif;
 }
 
+html, body{
+  margin:0;
+  padding:0;
+  height:100%;
+  overflow-x:hidden;
+}
+
+
 body{
   background:#0b1220;
   color:#fff;
   min-height:100vh;
-  overflow-x:hidden;
-  overflow-y:auto;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+body{
+  overscroll-behavior: none;
 }
 
 /* BLOBS (SAMA INDEX) */
@@ -58,6 +71,8 @@ body{
 
 /* CONTAINER */
 .container{
+  width:100%;
+  align-items:center;
   max-width:1100px;
   margin:120px auto 40px auto;
   display:flex;
