@@ -140,7 +140,7 @@ const LOGIN_KEY = "ems_admin_login";
 let allInvoices=[], weekRanges=[];
 let potonganCache = {};
 const CACHE_KEY_INV = "invoice_cache_v1";
-const CACHE_TTL = 1000 * 60 * 5; // 5 menit 
+const CACHE_TTL = 1000 * 60 * 5;
 
 function isCacheValid(time){
   return (Date.now() - time) < CACHE_TTL;
@@ -157,13 +157,11 @@ async function loadPotonganCache(){
   });
 }
 
-// FIX: parser tanggal anti timezone shift
 function parseDateSafe(dateStr){
   const [y, m, d] = dateStr.split("-");
   return new Date(Number(y), Number(m)-1, Number(d));
 }
 
-// Login Admin
 async function checkLogin(){
   const pw = document.getElementById("adminPassword").value.trim();
   document.getElementById("loginStatus").innerText = "⏳ Memeriksa password...";
@@ -190,7 +188,6 @@ async function checkLogin(){
 }
 
 async function loadData(){
-
   const cached = localStorage.getItem(CACHE_KEY_INV);
 
   if(cached){
@@ -244,7 +241,6 @@ async function refreshFromServer(){
   }
 }
 
-// Populate minggu (Minggu → Sabtu)
 function populateWeeks(){
   const select = document.getElementById("weekSelect");
   select.innerHTML = "";
@@ -287,7 +283,6 @@ function populateWeeks(){
 
 select.addEventListener("change", renderTable);
 
-// tunggu DOM + options siap
 requestAnimationFrame(() => {
   setTimeout(() => {
     if (select.options.length > 0) {
@@ -296,10 +291,8 @@ requestAnimationFrame(() => {
     }
   }, 0);
 });
-
 }
 
-// Render tabel, stats, top 3, detail
 async function renderTable(){
   const select=document.getElementById("weekSelect");
   const key=select.value;
@@ -308,13 +301,11 @@ async function renderTable(){
   const start = new Date(startStr + "T00:00:00");
   const end = new Date(endStr + "T23:59:59");
 
-  // Filter invoice minggu ini
   const weekInvoices = allInvoices.filter(i=>{
     const t = parseDateSafe(i["Tanggal Invoice"]);
     return t>=start && t<=end;
   });
 
-  // Invoice valid
   const validInvoices = weekInvoices.filter(i=>i.Status==="VALID");
   const pendingInvoices = weekInvoices.filter(i => i.Status === "PENDING");
   
@@ -324,7 +315,6 @@ async function renderTable(){
 
   const nama = i["Nama"];
 
-  // 🔥 FIX: ambil divisi dari invoice dulu (AMAN)
   const divisi = String(i["Divisi"] || "")
   .trim()
   .toUpperCase();
@@ -349,12 +339,10 @@ async function renderTable(){
   if (i.Status === "VALID") {
     payroll[nama].total += total;
 
-    // 🔥 ambil langsung dari SHEET (FIXED SOURCE)
     payroll[nama].gaji += Number(i.GajiBersih || 0);
   }
 }
 
-  // Update 4 card
   const totalInvoice = validInvoices.length;
   const totalBruto = validInvoices.reduce((a,b)=>a+Number(b.Total||0),0);
   const totalGaji = Object.values(payroll).reduce((a,b)=>a+b.gaji,0);
@@ -364,7 +352,6 @@ async function renderTable(){
   document.getElementById("totalInvoiceBruto").innerText = "$KK "+totalBruto.toLocaleString("id-ID");
   document.getElementById("totalGaji").innerText = "$KK "+totalGaji.toLocaleString("id-ID");
 
-  // Top 3
   const top3 = Object.entries(payroll).sort((a,b)=>b[1].gaji-a[1].gaji).slice(0,3);
   document.getElementById("topGaji").innerHTML = 
     top3.map((x,i)=>`
@@ -373,7 +360,6 @@ async function renderTable(){
     </div>
   `).join("");
 
-  // Render tabel payroll
   const tbody=document.getElementById("tbody");
   if(Object.keys(payroll).length===0){tbody.innerHTML='<tr><td colspan="6" class="empty">Belum ada invoice</td></tr>'; return;}
   tbody.innerHTML=Object.entries(payroll).map(([n,v], idx)=>`
@@ -421,16 +407,12 @@ function toggleDetail(idx){
 }
 
 function updateStatus(rowIndex, status){
-
   fetch(`${SCRIPT_URL}?action=updateStatus&rowIndex=${rowIndex}&status=${status}`)
     .then(res => res.json())
     .then(data => {
 
       if(!data.success) return;
 
-      // =========================
-      // 1. UPDATE CACHE LOKAL
-      // =========================
       let cached = localStorage.getItem(CACHE_KEY_INV);
       if(!cached) return;
 
@@ -450,14 +432,7 @@ function updateStatus(rowIndex, status){
       cached.time = Date.now();
       localStorage.setItem(CACHE_KEY_INV, JSON.stringify(cached));
 
-      // =========================
-      // 2. UPDATE DATA MEMORY (biar langsung konsisten)
-      // =========================
       allInvoices = cached.data;
-
-      // =========================
-      // 3. UPDATE UI TANPA RELOAD SERVER
-      // =========================
 
       requestAnimationFrame(() => {
         renderTable();
