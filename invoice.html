@@ -198,6 +198,13 @@ button:hover{opacity:.9;}
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
+const CACHE_KEY_EMS = "ems_cache_v1";
+const CACHE_KEY_PRICE = "price_cache_v1";
+const CACHE_TTL = 1000 * 60 * 10;
+
+function isCacheValid(time){
+  return (Date.now() - time) < CACHE_TTL;
+}
 
 const emsData = {};
 const nama = document.getElementById("nama");
@@ -216,20 +223,52 @@ const tanggalInvoice = document.getElementById("tanggalInvoice");
 
 invoiceType.innerHTML = `<option value="">Pilih Invoice</option>`;
 
-fetch(SCRIPT_URL + "?action=getPriceList")
-  .then(res => res.json())
-  .then(data => {
+function loadPriceList(){
 
-        data.forEach(item => {
-      const opt = document.createElement("option");
-      opt.value = item.label;
-      opt.textContent = item.label;
-      opt.dataset.price = item.price;
-      invoiceType.appendChild(opt);
+  const cached = localStorage.getItem(CACHE_KEY_PRICE);
+
+  if(cached){
+    try {
+      const parsed = JSON.parse(cached);
+
+      if(parsed && isCacheValid(parsed.time) && parsed.data?.length){
+        injectPrice(parsed.data);
+        return;
+      }
+    } catch(e){
+      localStorage.removeItem(CACHE_KEY_PRICE);
+    }
+  }
+
+  fetch(SCRIPT_URL + "?action=getPriceList")
+    .then(res => res.json())
+    .then(data => {
+
+      const safe = data || [];
+
+      localStorage.setItem(CACHE_KEY_PRICE, JSON.stringify({
+        data: safe,
+        time: Date.now()
+      }));
+
+      injectPrice(safe);
     });
-    
+}
+
+function injectPrice(data){
+
+    invoiceType.innerHTML = `<option value="">Pilih Invoice</option>`;
+
+    data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.label;
+        opt.textContent = item.label;
+        opt.dataset.price = item.price;
+        invoiceType.appendChild(opt);
+    });
+
     injectSpecialOptions();
-  });
+}
 
 function injectSpecialOptions() {
   const specialOptions = [
@@ -269,20 +308,60 @@ function injectSpecialOptions() {
 
 })();
 
-fetch(SCRIPT_URL + "?action=getEMS")
-.then(res => res.json())
-.then(data => {
+function loadEMS(){
+  const cached = localStorage.getItem(CACHE_KEY_EMS);
+
+  if(cached){
+    try {
+      const parsed = JSON.parse(cached);
+
+      if(parsed && isCacheValid(parsed.time)){
+        buildEMS(parsed.data);
+        return;
+      }
+    } catch(e){
+      localStorage.removeItem(CACHE_KEY_EMS);
+    }
+  }
+
+  fetch(SCRIPT_URL + "?action=getEMS")
+    .then(res => res.json())
+    .then(data => {
+
+      const safe = data || [];
+
+      localStorage.setItem(CACHE_KEY_EMS, JSON.stringify({
+        data: safe,
+        time: Date.now()
+      }));
+
+      buildEMS(safe);
+    })
+    .catch(err => {
+      console.error("EMS error:", err);
+    });
+}
+
+function buildEMS(data){
+  if(window.tomSelectNama){
+    window.tomSelectNama.destroy();
+    window.tomSelectNama = null;
+  }
+
+  nama.innerHTML = "";
+
     data.forEach(item => {
         if(item.nama){
-			emsData[item.nama] = {
-			jabatan: item.jabatan || "",
-			divisi: item.divisi || ""
-		};
-			const option = document.createElement("option");
-			option.value = item.nama;
-			option.textContent = item.nama;
-			nama.appendChild(option);
-		}	
+            emsData[item.nama] = {
+                jabatan: item.jabatan || "",
+                divisi: item.divisi || ""
+            };
+
+            const option = document.createElement("option");
+            option.value = item.nama;
+            option.textContent = item.nama;
+            nama.appendChild(option);
+        }
     });
 
     window.tomSelectNama = new TomSelect("#nama", {
@@ -292,19 +371,18 @@ fetch(SCRIPT_URL + "?action=getEMS")
     });
 
     tomSelectNama.on("change", (v) => {
-      localStorage.setItem("ems_name", v);
+        localStorage.setItem("ems_name", v);
 
-      jabatan.value = emsData[v]?.jabatan || "";
-      divisi.value = emsData[v]?.divisi || "";
+        jabatan.value = emsData[v]?.jabatan || "";
+        divisi.value = emsData[v]?.divisi || "";
     });
 
     const saved = localStorage.getItem("ems_name");
 
     if (saved && emsData[saved]) {
-       tomSelectNama.setValue(saved);
+        tomSelectNama.setValue(saved);
     }
-})
-.catch(err => console.error("Gagal load EMS:", err));
+}
 
 nama.addEventListener("change", () => {
     jabatan.value = emsData[nama.value]?.jabatan || "";
@@ -450,6 +528,9 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
         status.innerHTML = "❌ Gagal mengirim invoice";
     }
 });
+
+loadEMS();
+loadPriceList();
 </script>
 </body>
 </html>
