@@ -281,12 +281,8 @@ function isCacheValid(time){
 }
 
 async function loadEMS(){
-
   const cached = localStorage.getItem(CACHE_KEY_EMS);
 
-  // =========================
-  // 1. CEK CACHE
-  // =========================
   if(cached){
 
     let parsed = null;
@@ -304,9 +300,6 @@ async function loadEMS(){
     }
   }
 
-  // =========================
-  // 2. FETCH SERVER (FALLBACK)
-  // =========================
   try {
     const res = await fetch(SCRIPT_URL + "?action=getEMS");
     const data = await res.json();
@@ -323,7 +316,6 @@ async function loadEMS(){
   } catch(e){
     console.error("Gagal fetch EMS:", e);
 
-    // fallback terakhir: cache kalau ada
     const fallback = localStorage.getItem(CACHE_KEY_EMS);
 
     if(fallback){
@@ -340,7 +332,6 @@ async function loadEMS(){
 }
 
 function buildEMS(data){
-
   const select = document.getElementById("searchEMS");
   select.innerHTML = "";
 
@@ -380,12 +371,8 @@ function buildEMS(data){
 }
 
 async function loadData(){
-
   const cached = localStorage.getItem(CACHE_KEY_ATT);
 
-  // =========================
-  // 1. CEK CACHE
-  // =========================
   if(cached){
 
     let parsed = null;
@@ -407,9 +394,6 @@ async function loadData(){
     }
   }
 
-  // =========================
-  // 2. FETCH SERVER (FALLBACK)
-  // =========================
   try {
     const res = await fetch(SCRIPT_URL + "?action=getAttendanceLog");
     const data = await res.json();
@@ -426,9 +410,6 @@ async function loadData(){
     allData = [];
   }
 
-  // =========================
-  // 3. RENDER UI
-  // =========================
   render();
 }
 
@@ -500,8 +481,7 @@ function getWeekRange(){
     return {start,end};
 }
 
-function render(selectedName){
-	
+function render(selectedName){	
 	const name = (selectedName || ts?.getValue() || "").toString().trim();
 	
 	console.log("SELECTED:", ts.getValue());
