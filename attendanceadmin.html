@@ -758,7 +758,9 @@ window.addEventListener("load", () => {
     document.getElementById("loginCard").classList.add("hidden");
     document.getElementById("adminPanel").classList.remove("hidden");
     document.getElementById("navbar").style.display = "flex";
-    loadAttendanceData();
+    loadRates().then(() => {
+      loadAttendanceData();
+    });
   }
 });
 </script>
