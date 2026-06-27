@@ -22,7 +22,6 @@ body{
   min-height:100vh;
 }
 
-/* NAVBAR */
 .topnav{
   position:fixed;
   top:0;
@@ -161,19 +160,19 @@ ul{
   <div class="card">
     <h2>1. Attendance</h2>
     <ul>
-      <li>Pilih Nama EMS</li>
-      <li>Klik <span class="highlight">START DUTY</span> → ON DUTY</li>
-      <li>Klik <span class="highlight">FINISH DUTY</span> → OFF DUTY</li>
-      <li>Data otomatis tersimpan</li>
+      <li>Pilih Nama EMS (Jabatan & Divisi terisi otomatis)</li>
+      <li>Klik <span class="highlight">START DUTY</span> → ON DUTY (cukup 1x klik)</li>
+      <li>Klik <span class="highlight">FINISH DUTY</span> → OFF DUTY (cukup 1x klik)</li>
+      <li>Data durasi duty otomatis tersimpan</li>
     </ul>
 
     <div class="note">
       <div class="note-title">💡 Catatan</div>
       <ul>
-        <li>Sistem menggunakan zona waktu WIB (UTC +7), durasi kerja dihitung otomatis dari START → FINISH</li>
+        <li>Sistem menggunakan zona waktu WIB (UTC+7), durasi kerja dihitung otomatis dari START → FINISH</li>
         <li>Apabila melamun diharapkan OFF DUTY</li>
         <li>Setelah ON DUTY, browser boleh ditutup, dan timer akan tetap berjalan</li>
-        <li>Jika terlambat ON DUTY atau lupa OFF DUTY silakan hubungi Finance</li>
+        <li>Jika terlambat ON DUTY atau lupa OFF DUTY silakan hubungi FINANCE</li>
       </ul>
     </div>
   </div>
@@ -181,6 +180,7 @@ ul{
   <div class="card">
     <h2>2. Attendance Overview</h2>
     <ul>
+      <li>Filter berdasarkan Nama EMS</li>
       <li>Total jam kerja minggu ini</li>
       <li>Total jam kerja bulan ini</li>
       <li>Waktu duty terakhir</li>
@@ -191,20 +191,20 @@ ul{
   <div class="card">
     <h2>3. Invoice Input</h2>
     <ul>
-      <li>Pilih EMS</li>
+      <li>Pilih EMS (Jabatan & Divisi terisi otomatis)</li>
       <li>Isi invoice</li>
       <li>Pilih jenis invoice</li>
-      <li>Isi harga & qty</li>
-      <li>Upload bukti Discord</li>
+      <li>Isi harga & qty (Khusus Operasi, Surat, Lain-lain)</li>
+      <li>Upload link bukti invoice</li>
       <li>Simpan invoice</li>
     </ul>
 
     <div class="note">
       <div class="note-title">💡 Catatan</div>
       <ul>
-        <li>Bukti wajib berupa link dari Discord</li>
+        <li>Link bukti wajib berupa link dari Discord</li>
         <li>Format harga tanpa titik (contoh: 200000)</li>
-        <li>Kesalahan input invoice silakan hubungi Finance</li>
+        <li>Kesalahan input invoice silakan hubungi FINANCE</li>
       </ul>
     </div>
   </div>
@@ -212,7 +212,7 @@ ul{
   <div class="card">
     <h2>4. Invoice Overview</h2>
     <ul>
-      <li>Filter EMS</li>
+      <li>Filter berdasarkan Nama EMS</li>
       <li>Lihat total minggu ini</li>
       <li>Lihat jumlah invoice</li>
       <li>Lihat upload terakhir</li>
