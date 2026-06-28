@@ -196,6 +196,12 @@ button:hover{opacity:.9;}
 
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
+function getWIBDate() {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    return new Date(utc + (7 * 60 * 60000));
+}
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 const CACHE_KEY_EMS = "ems_cache_v1";
 const CACHE_KEY_PRICE = "price_cache_v1";
@@ -283,14 +289,18 @@ function injectSpecialOptions() {
 }
 
 (function(){
-    const now = new Date();
+    const now = getWIBDate();
 
     const start = new Date(now);
     start.setHours(0,0,0,0);
-    start.setDate(now.getDate() - now.getDay());
+
+    // geser ke hari Minggu (0 = Minggu di JS)
+    const day = start.getDay(); 
+    start.setDate(start.getDate() - day);
 
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
+    end.setHours(23,59,59,999);
 
     const formatDate = (d)=>{
         const y = d.getFullYear();
