@@ -460,7 +460,7 @@ document.getElementById("invoiceForm").addEventListener("submit", async (e)=>{
     if(!document.getElementById("tanggalInvoice").value){ status.innerHTML = "⚠️ Pilih Tanggal Invoice"; return; }
 
     const bukti = document.getElementById("bukti").value;
-    if(!bukti.includes("discord.com") && !bukti.includes("cdn.discordapp.com")){
+    if (!bukti.includes("discord.com") && !bukti.includes("discordapp.com") && !bukti.includes("cdn.discordapp.com")) {
         status.innerHTML = "⚠️ Bukti harus link Discord"; return;
     }
 
