@@ -339,7 +339,7 @@ function populateWeeks(){
     local.setHours(0,0,0,0);
 
     const start = new Date(local);
-    start.setDate(start.getDate() - start.getDay()); // Minggu
+    start.setDate(start.getDate() - start.getDay());
 
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
@@ -539,7 +539,19 @@ function renderAttendanceTable(){
     return;
   }
 
-  tbody.innerHTML = Object.values(payroll).map((v, idx) => {
+  const sortedPayroll = Object.values(payroll)
+    .sort((a, b) => {
+
+      const aHasPending = a.sessions.some(i => String(i.Status).toUpperCase() === "PENDING");
+      const bHasPending = b.sessions.some(i => String(i.Status).toUpperCase() === "PENDING");
+
+      if (aHasPending && !bHasPending) return -1;
+      if (!aHasPending && bHasPending) return 1;
+  
+      return a.nama.localeCompare(b.nama);
+    });
+
+  tbody.innerHTML = sortedPayroll.map((v, idx) => {
 
     const validHours = v.validMinutes / 60;
     const rateHour = validHours > 0 ? (v.gaji / validHours) : 0;
