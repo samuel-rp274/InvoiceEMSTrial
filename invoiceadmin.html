@@ -50,7 +50,6 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
 <body>
 <div class="container">
 
-<!-- Navbar -->
 <div id="navbar" style="display:flex;justify-content:center;margin-bottom:20px; display:none;">
   <div style="display:flex;gap:6px;background:#1e293b;padding:6px 12px;border-radius:12px;">
     <a href="admin.html" style="padding:8px 14px;color:white;background:#334155;border-radius:12px;text-decoration:none;">Total Salary</a>
@@ -59,7 +58,6 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
   </div>
 </div>
 
-<!-- Login card -->
 <div class="card" id="loginCard">
   <h1>Admin Dashboard</h1>
   <div class="subtitle">Masukkan password admin</div>
@@ -68,12 +66,10 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
   <div id="loginStatus"></div>
 </div>
 
-<!-- Admin Panel -->
 <div class="card hidden" id="adminPanel">
   <h1>Invoice Dashboard EMSKK</h1>
 
 <div class="stats">
-  <!-- Card 1: Pending + Valid -->
   <div class="stat">
     <div class="stat-title">📊 Status Invoice Minggu Ini</div>
     <div class="stat-value">
@@ -86,7 +82,6 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
     </div>
   </div>
 
-  <!-- Card 2: Bruto + Gaji -->
   <div class="stat">
     <div class="stat-title">💰 Keuangan Minggu Ini</div>
     <div class="stat-value">
@@ -99,20 +94,17 @@ a{color:#60a5fa;cursor:pointer;text-decoration:underline;}
     </div>
   </div>
 
-  <!-- Card 3: Top 3 -->
   <div class="stat">
     <div class="stat-title">🏆 Top 3 Total Invoice Mingguan</div>
     <div class="stat-value" id="topGaji">-</div>
   </div>
 </div>
 
-  <!-- Filter minggu -->
   <div class="form-group">
     <label>Pilih Minggu</label>
     <select id="weekSelect"></select>
   </div>
 
-  <!-- Tabel Payroll -->
   <div class="card">
     <table>
       <thead>
@@ -501,7 +493,6 @@ function handleNavbar(){
 }
 
 window.addEventListener("load", handleNavbar);
-
 </script>
 </body>
 </html>
