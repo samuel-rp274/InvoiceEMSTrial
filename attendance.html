@@ -38,7 +38,6 @@ body{
   overscroll-behavior: none;
 }
 
-/* BLOBS (SAMA INDEX) */
 .blob{
     position:fixed;
     width:420px;
@@ -68,7 +67,6 @@ body{
   50%{transform:translateY(30px)}
 }
 
-/* CONTAINER */
 .container{
   width:100%;
   align-items:center;
@@ -78,7 +76,6 @@ body{
   justify-content:center;
 }
 
-/* GLASS CARD (MATCH INDEX) */
 .card{
   background:rgba(255,255,255,0.06);
   border:1px solid rgba(255,255,255,0.08);
@@ -91,7 +88,6 @@ body{
   z-index:2;
 }
 
-/* TITLE */
 h1{
   text-align:center;
   font-size:26px;
@@ -105,7 +101,6 @@ h1{
   margin-bottom:18px;
 }
 
-/* CLOCK */
 .clock-box{
   text-align:center;
   padding:16px;
@@ -126,7 +121,6 @@ h1{
   color:#94a3b8;
 }
 
-/* FORM */
 .form-group{
   margin-bottom:14px;
 }
@@ -149,7 +143,6 @@ select,input{
   outline:none;
 }
 
-/* BUTTON */
 button{
   width:100%;
   padding:12px;
@@ -173,7 +166,6 @@ button:hover{
   background:#ef4444;
 }
 
-/* STATUS */
 .status{
   text-align:center;
   margin-top:14px;
@@ -185,7 +177,6 @@ button:hover{
   color:#94a3b8;
 }
 
-/* TOM SELECT FIX (match UI) */
 .ts-wrapper.single .ts-control{
   background:rgba(255,255,255,0.06) !important;
   color:white !important;
@@ -201,7 +192,6 @@ button:hover{
   color:white !important;
 }
 
-/* placeholder */
 .ts-control input::placeholder{
   color:#94a3b8 !important;
 }
@@ -253,7 +243,6 @@ button:hover{
   <div class="title">EMSKK SYSTEM</div>
 </div>
 
-<!-- BLOBS -->
 <div class="blob one"></div>
 <div class="blob two"></div>
 
@@ -263,13 +252,11 @@ button:hover{
     <h1>EMSKK ATTENDANCE</h1>
     <div class="subtitle">Realtime on-duty tracking system</div>
 
-    <!-- CLOCK -->
     <div class="clock-box">
       <div class="clock-time" id="clock-time">00:00:00</div>
       <div class="clock-date" id="clock-date">loading...</div>
     </div>
 
-    <!-- FORM -->
     <div class="form-group">
       <label>Nama EMS</label>
       <select id="nama">
@@ -328,7 +315,6 @@ function setStatus(type,text){
 }
 
 async function loadEMS(){
-
   if(ts){
     ts.destroy();
     ts = null;
@@ -517,6 +503,5 @@ document.addEventListener("change",(e)=>{
 
 loadEMS();
 </script>
-
 </body>
 </html>
