@@ -4,65 +4,102 @@
 <meta charset="UTF-8">
 <title>EMSKK Duty Ranking</title>
 
+<link rel="icon" href="logo.png" type="image/png">
 <style>
-body{
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --input:#334155;
+  --primary:#dc2626;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+}
+
+*{
   margin:0;
-  font-family: Arial;
-  background: radial-gradient(circle at top, #1e293b, #0f172a);
-  color:white;
-  display:flex;
-  justify-content:center;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter,Arial,sans-serif;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  padding:30px;
+}
+
+body::after{
+  content:"system by Samuel";
+  position:fixed;
+  bottom:10px;
+  left:12px;
+  font-size:10px;
+  color:rgba(148,163,184,0.25);
+  letter-spacing:0.5px;
+  pointer-events:none;
+  z-index:9999;
 }
 
 .container{
-  width:100%;
-  max-width:1100px;
-  padding:30px;
+  max-width:1200px;
+  margin:auto;
 }
 
 h2{
   margin-bottom:20px;
+  font-size:24px;
 }
 
-/* TOPBAR */
+.card{
+  background:var(--card);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
 .topbar{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
   margin-bottom:20px;
-  background:rgba(255,255,255,0.05);
-  padding:15px;
-  border-radius:14px;
+  background:rgba(255,255,255,0.03);
+  padding:12px;
+  border-radius:16px;
 }
 
 button{
   padding:10px 14px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#334155;
   color:white;
   cursor:pointer;
+  transition:.2s;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  background:#475569;
 }
 
 button.active{
-  background:#22c55e;
-  color:black;
-  font-weight:bold;
+  background:var(--primary);
+  font-weight:700;
 }
 
 select{
   padding:10px;
-  border-radius:10px;
-  background:#1e293b;
+  border-radius:12px;
+  background:var(--input);
   color:white;
+  border:none;
 }
 
-/* TABLE */
 .table-wrap{
-  background:rgba(255,255,255,0.04);
-  border-radius:16px;
+  background:var(--card);
+  border-radius:20px;
   overflow:hidden;
-  margin-top:10px;
+  border:1px solid rgba(255,255,255,0.05);
 }
 
 table{
@@ -71,14 +108,16 @@ table{
 }
 
 th{
-  background:#0b1220;
+  background:#111827;
   padding:14px;
   text-align:center;
+  color:var(--muted);
+  font-size:13px;
 }
 
 td{
   padding:14px;
-  border-bottom:1px solid #334155;
+  border-bottom:1px solid rgba(255,255,255,0.05);
   text-align:center;
 }
 
@@ -86,13 +125,26 @@ td:nth-child(2){
   text-align:left;
 }
 
-.rank{
-  color:#fbbf24;
-  font-weight:bold;
-}
-
 tr:hover td{
   background:rgba(255,255,255,0.03);
+}
+
+.rank{
+  color:#fbbf24;
+  font-weight:700;
+}
+
+/* EMPTY */
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:30px;
+}
+
+.section-title{
+  margin:25px 0 10px;
+  font-size:16px;
+  color:var(--muted);
 }
 </style>
 </head>
@@ -101,17 +153,15 @@ tr:hover td{
 
 <div class="container">
 
-<h2>EMSKK Duty Ranking</h2>
+<h2>🏆 EMSKK Duty Ranking</h2>
 
 <div class="topbar">
-
   <button id="weeklyBtn" class="active" onclick="setMode('weekly')">Weekly</button>
   <button id="monthlyBtn" onclick="setMode('monthly')">Monthly</button>
 
   <select id="periodSelect" onchange="render()"></select>
 
   <button onclick="loadData()">Refresh</button>
-
 </div>
 
 <div class="table-wrap">
@@ -127,12 +177,11 @@ tr:hover td{
 </table>
 </div>
 
+<div class="section-title">BELUM PERNAH DUTY</div>
+
 <div class="table-wrap">
 <table>
 <thead>
-<tr>
-<th colspan="2">BELUM PERNAH DUTY</th>
-</tr>
 <tr>
 <th>No</th>
 <th>Nama</th>
@@ -145,7 +194,6 @@ tr:hover td{
 </div>
 
 <script>
-
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 
 let allData = [];
@@ -154,17 +202,13 @@ let mode = "weekly";
 let periods = [];
 let selectedPeriod = "";
 
-/* ================= DATE ================= */
 function parseDate(str){
   if(!str) return null;
   return new Date(str.replace(" ","T"));
 }
 
-/* ================= WEEK KEY SINGLE SOURCE ================= */
 function getWeekKey(d){
-
   const local = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
   const ws = new Date(local);
   ws.setDate(local.getDate() - local.getDay());
   ws.setHours(0,0,0,0);
@@ -179,7 +223,6 @@ function getWeekKey(d){
   return `${fmt(ws)}|${fmt(we)}`;
 }
 
-/* ================= HOURS ================= */
 function getDurationHours(s,f){
   const a=parseDate(s);
   const b=parseDate(f);
@@ -187,13 +230,11 @@ function getDurationHours(s,f){
   return (b-a)/(1000*60*60);
 }
 
-/* ================= FORMAT ================= */
 function formatHours(h){
   const m=Math.floor(h*60);
   return `${Math.floor(m/60)}h ${m%60}m`;
 }
 
-/* ================= LOAD ================= */
 async function loadData(){
 
   const res = await fetch(SCRIPT_URL + "?action=getAttendanceLog");
@@ -202,7 +243,6 @@ async function loadData(){
   const res2 = await fetch(SCRIPT_URL + "?action=getEMSList");
   const raw = await res2.json() || [];
 
-  // 🔥 FIX FINAL MASTER CLEAN
   masterData = raw
     .map(x => {
       if (!x) return "";
@@ -215,21 +255,18 @@ async function loadData(){
       n &&
       n !== "undefined" &&
       n !== "-" &&
-      !/^\d+(\.\d+)?$/.test(n) // ❗ BLOCK ANGKA TOTAL
+      !/^\d+(\.\d+)?$/.test(n)
     );
 
   buildPeriods();
   render();
 }
 
-/* ================= PERIOD ================= */
 function buildPeriods(){
-
   const weekMap = {};
   const monthSet = new Set();
 
   allData.forEach(r=>{
-
     if(!r.Start || r.Status !== "VALID") return;
 
     const d=parseDate(r.Start);
@@ -261,9 +298,7 @@ function buildPeriods(){
   }
 }
 
-/* ================= RENDER ================= */
 function render(){
-
   selectedPeriod = document.getElementById("periodSelect").value;
 
   const map = {};
@@ -311,15 +346,13 @@ function render(){
     `;
   });
 
-  /* ================= NEVER DUTY (FIX FINAL) ================= */
-
   const dutySet = new Set(
     sorted.map(x => x[0].trim().toLowerCase())
   );
 
   const never = masterData
     .filter(n => n && n.trim())
-    .filter(n => !/^\d+(\.\d+)?$/.test(n)) // ❗ BLOCK ANGKA
+    .filter(n => !/^\d+(\.\d+)?$/.test(n))
     .filter(n => n.toLowerCase() !== "nama")
     .filter(n => !dutySet.has(n.trim().toLowerCase()));
 
@@ -336,27 +369,15 @@ function render(){
   });
 }
 
-/* ================= MODE ================= */
 function setMode(m){
-
   mode=m;
-
-  document.getElementById("weeklyBtn").classList.remove("active");
-  document.getElementById("monthlyBtn").classList.remove("active");
-
-  if(m==="weekly"){
-    document.getElementById("weeklyBtn").classList.add("active");
-  } else {
-    document.getElementById("monthlyBtn").classList.add("active");
-  }
-
+  document.getElementById("weeklyBtn").classList.toggle("active",m==="weekly");
+  document.getElementById("monthlyBtn").classList.toggle("active",m==="monthly");
   buildPeriods();
   render();
 }
 
 loadData();
-
 </script>
-
 </body>
 </html>
