@@ -43,7 +43,7 @@ body::after{
 .container{
   max-width:1200px;
   margin:auto;
-  margin-top:80px;
+  margin-top:60px;
 }
 
 h2{
@@ -182,7 +182,6 @@ tr:hover td{
 
 </style>
 </head>
-
 <body>
 <div class="topnav">
   <a href="index.html">← Home</a>
@@ -231,7 +230,6 @@ tr:hover td{
 </div>
 
 </div>
-
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-DljKMm6FXmGgpxhu2fOZV9_HOG87WdsEbGmf7Bq18sdRIZ2kgg/exec";
 
@@ -277,7 +275,6 @@ function formatHours(h){
 }
 
 async function loadData(){
-
   const res = await fetch(SCRIPT_URL + "?action=getAttendanceLog");
   allData = await res.json() || [];
 
@@ -423,7 +420,6 @@ function setMode(m){
 }
 
 function exportTXT(){
-
   let text = "";
 
   text += "EMSKK DUTY RANKING\n";
