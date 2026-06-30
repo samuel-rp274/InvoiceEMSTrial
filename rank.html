@@ -162,6 +162,7 @@ tr:hover td{
   <select id="periodSelect" onchange="render()"></select>
 
   <button onclick="loadData()">Refresh</button>
+  <button onclick="exportTXT()">Export TXT</button>
 </div>
 
 <div class="table-wrap">
@@ -198,6 +199,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyM0aOVZwPSu2Pz0gn-D
 
 let allData = [];
 let masterData = [];
+let lastSorted = [];
+let lastNever = [];
 let mode = "weekly";
 let periods = [];
 let selectedPeriod = "";
@@ -333,6 +336,8 @@ function render(){
 
   const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
 
+  lastSorted = sorted;
+
   const tb = document.getElementById("tableBody");
   tb.innerHTML = "";
 
@@ -359,6 +364,8 @@ function render(){
   const tb2 = document.getElementById("neverDutyTable");
   tb2.innerHTML = "";
 
+  lastNever = never;
+
   never.forEach((u, i) => {
     tb2.innerHTML += `
       <tr>
@@ -375,6 +382,36 @@ function setMode(m){
   document.getElementById("monthlyBtn").classList.toggle("active",m==="monthly");
   buildPeriods();
   render();
+}
+
+function exportTXT(){
+
+  let text = "";
+
+  text += "EMSKK DUTY RANKING\n";
+  text += "Period: " + selectedPeriod + "\n\n";
+
+  text += "=== RANKING ===\n";
+
+  lastSorted.forEach((x, i) => {
+    text += `${i+1}. ${x[0]} - ${formatHours(x[1])}\n`;
+  });
+
+  text += "\n=== BELUM PERNAH DUTY ===\n";
+
+  lastNever.forEach((n, i) => {
+    text += `${i+1}. ${n}\n`;
+  });
+
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ems-duty-${selectedPeriod}.txt`;
+  a.click();
+
+  URL.revokeObjectURL(url);
 }
 
 loadData();
